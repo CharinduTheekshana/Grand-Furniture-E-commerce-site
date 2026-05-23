@@ -1,0 +1,346 @@
+/* ═══════════════════════════════════════════════
+   Grand Furniture — Custom Styles
+   All custom styles centralized here
+═══════════════════════════════════════════════ */
+
+/* ─── Toast Notifications ─── */
+.rt-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 280px;
+    max-width: 400px;
+    padding: 14px 24px;
+    font-size: 14px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2);
+    z-index: 99999;
+    display: none;
+    animation: toastSlideIn 0.3s ease;
+}
+@keyframes toastSlideIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-15px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.rt-toast.success { background: #2ecc71; color: #fff; }
+.rt-toast.error   { background: #e74c3c; color: #fff; }
+.rt-toast.warning { background: #f39c12; color: #fff; }
+.rt-toast.info    { background: #3498db; color: #fff; }
+
+/* ─── Grand Theme Buttons ─── */
+.grand-btn {
+    background: #333;
+    color: #fff;
+    padding: 6px 16px;
+    font-size: 12px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+}
+.grand-btn:hover { background: #555; color: #fff; }
+.grand-btn-gold  { background: #c19b5b; }
+.grand-btn-gold:hover { background: #a8844a; color: #fff; }
+.grand-btn-green { background: #2ecc71; }
+.grand-btn-green:hover { background: #27ae60; color: #fff; }
+.grand-btn-red   { background: #e74c3c; }
+.grand-btn-red:hover { background: #c0392b; color: #fff; }
+
+/* ─── Grand Cards ─── */
+.grand-card {
+    border: 1px solid #eee;
+    padding: 25px;
+}
+.grand-card-title {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+.grand-card-title i {
+    color: #c19b5b;
+    margin-right: 8px;
+}
+
+/* ─── Order Status Badges ─── */
+.status-badge {
+    padding: 3px 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+    display: inline-block;
+}
+.status-pending    { background: #f39c12; }
+.status-paid       { background: #3498db; }
+.status-processing { background: #9b59b6; }
+.status-completed  { background: #2ecc71; }
+.status-cancelled  { background: #e74c3c; }
+
+/* ─── Order Tables ─── */
+.grand-table-wrap {
+    border: 1px solid #eee;
+    padding: 25px;
+}
+.grand-table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+.grand-table-heading {
+    margin: 0;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ─── Payment Page ─── */
+.payment-card {
+    border: 1px solid #eee;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+.payment-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+}
+.payment-total {
+    font-weight: bold;
+    color: #c19b5b;
+    font-size: 16px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+    margin-top: 5px;
+}
+.payment-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+.payment-ssl-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 13px;
+}
+.payment-ssl-note i { color: #2ecc71; font-size: 18px; }
+.pay-button {
+    width: 100%;
+    background: #c19b5b;
+    color: #fff;
+    border: none;
+    padding: 15px;
+    font-size: 16px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.pay-button:hover { background: #a8844a; }
+
+/* ─── Order Detail ─── */
+.order-info-table td { padding: 6px 0; font-size: 14px; }
+.order-info-label { color: #999; width: 40%; }
+
+/* ─── Blog ─── */
+.blog-back-link {
+    color: #333;
+    font-size: 13px;
+    text-decoration: none;
+    border: 1px solid #333;
+    padding: 6px 16px;
+    display: inline-block;
+}
+.blog-back-link:hover { background: #333; color: #fff; }
+
+/* ─── Empty State ─── */
+.grand-empty-state {
+    padding: 60px 0;
+    text-align: center;
+}
+.grand-empty-icon {
+    font-size: 60px;
+    color: #eee;
+    margin-bottom: 20px;
+    display: block;
+}
+.grand-empty-title {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ─── Confirm Received Button ─── */
+.confirm-received-btn {
+    background: #2ecc71;
+    color: #fff;
+    border: none;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+}
+
+/* ─── Action Buttons Row ─── */
+.grand-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+/* ─── Checkout ─── */
+.checkout-pay-btn {
+    background: #c19b5b;
+    color: #fff;
+    border: none;
+    padding: 6px 16px;
+    font-size: 12px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+/* ═══ Admin Panel Theme (Filament v3) ═══ */
+.fi-sidebar-header { 
+    display: none !important; 
+}
+.fi-sidebar { background: #1c1c1c !important;
+    border-right: none !important; 
+}
+.fi-sidebar-nav { 
+    background: #1c1c1c !important; 
+}
+.fi-sidebar-item-button { color: #aaa !important; 
+    border-radius: 0 !important; 
+    padding: 10px 16px !important; 
+    transition: all 0.2s !important; 
+}
+.fi-sidebar-item-button:hover { 
+    background: rgba(193,155,91,0.15) !important; 
+    color: #c19b5b !important; 
+    padding-left: 22px !important; 
+}
+.fi-sidebar-item-button[aria-current="page"], 
+.fi-sidebar-item-button.fi-active { 
+    background: #c19b5b !important; 
+    color: #fff !important; 
+}
+.fi-sidebar-item-icon { 
+    color: inherit !important; 
+}
+.fi-sidebar-item-label { 
+    color: inherit !important; 
+    font-size: 13px !important; 
+}
+.fi-main { 
+    background: #f8f7f4 !important; 
+}
+.fi-topbar { 
+    background: #fff !important; 
+    border-bottom: 2px solid #f0ece4 !important; 
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06) !important; 
+}
+.fi-header-heading { 
+    font-size: 20px !important; 
+    letter-spacing: 2px !important; 
+    text-transform: uppercase !important; 
+    font-weight: 700 !important; 
+}
+.fi-breadcrumbs-item-label { 
+    color: #c19b5b !important; 
+    font-size: 12px !important; 
+}
+.fi-btn-color-primary { 
+    background: #c19b5b !important; 
+    border-color: #c19b5b !important; 
+    border-radius: 0 !important; 
+}
+.fi-btn-color-primary:hover { 
+    background: #a8844a !important; 
+}
+.fi-btn-color-danger { 
+    border-radius: 0 !important; 
+}
+.fi-ta-wrap { 
+    border-radius: 0 !important; 
+    border: 1px solid #e8e4dc !important; 
+    box-shadow: none !important; 
+}
+.fi-ta-header-cell { 
+    text-transform: uppercase !important; 
+    font-size: 11px !important; 
+    letter-spacing: 1.5px !important; 
+    color: #888 !important; 
+    background: #faf8f4 !important; 
+}
+.fi-ta-row:hover td { 
+    background: #fdf8f0 !important; 
+}
+.fi-wi-stats-overview-stat { 
+    border-radius: 0 !important; 
+    border-top: 3px solid #c19b5b !important; 
+}
+.fi-wi-stats-overview-stat-value { 
+    font-size: 32px !important; 
+    font-weight: 700 !important; 
+}
+.fi-wi-stats-overview-stat-label { 
+    text-transform: uppercase !important; 
+    letter-spacing: 1px !important; 
+    font-size: 11px !important; 
+    color: #888 !important; 
+}
+.fi-fo-field-wrp label { 
+    font-weight: 600 !important; 
+    text-transform: uppercase !important; 
+    font-size: 11px !important; 
+}
+.fi-input { 
+    border-radius: 0 !important; 
+    border: 1px solid #ddd !important; 
+}
+.fi-section { 
+    border-radius: 0 !important; 
+    border: 1px solid #e8e4dc !important; 
+    box-shadow: none !important; 
+}
+.fi-section-header-heading { 
+    text-transform: uppercase !important; 
+    color: #c19b5b !important; 
+}
+.fi-badge { 
+    border-radius: 0 !important; 
+    font-size: 10px !important; 
+    text-transform: uppercase !important; 
+}
+.fi-pagination-item-btn[aria-current="page"] { 
+    background: #c19b5b !important; 
+    border-color: #c19b5b !important; 
+    color: #fff !important; 
+}
+.fi-avatar { 
+    background: #c19b5b !important; 
+    border-radius: 0 !important; 
+}
