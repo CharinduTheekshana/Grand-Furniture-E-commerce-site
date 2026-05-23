@@ -19,39 +19,20 @@ class OrderResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('Customer Information')
                 ->schema([
-                    Forms\Components\TextInput::make('name')
-                        ->label('Customer Name')
-                        ->disabled(),
-                    Forms\Components\TextInput::make('email')
-                        ->label('Email')
-                        ->disabled(),
-                    Forms\Components\TextInput::make('phone')
-                        ->label('Phone')
-                        ->disabled(),
-                    Forms\Components\TextInput::make('address')
-                        ->label('Address')
-                        ->disabled()
-                        ->columnSpanFull(),
-                ])
-                ->columns(2),
-
-            Forms\Components\Section::make('Order Details')
-                ->schema([
-                    Forms\Components\TextInput::make('total')
-                        ->label('Total Amount (LKR)')
-                        ->disabled(),
+                    Forms\Components\TextInput::make('name')->label('Customer Name')->disabled(),
+                    Forms\Components\TextInput::make('email')->disabled(),
+                    Forms\Components\TextInput::make('phone')->disabled(),
+                    Forms\Components\TextInput::make('address')->disabled()->columnSpanFull(),
+                    Forms\Components\TextInput::make('total')->label('Total (LKR)')->disabled(),
                     Forms\Components\Select::make('status')
-                        ->label('Order Status')
                         ->options([
-                                'pending'    => 'Pending',
-                                'paid'       => 'Paid',
-                                'processing' => 'Processing',
-                                'completed'  => 'Completed',
-                                'cancelled'  => 'Cancelled',
-                        ])
-                        ->required(),
-                ])
-                ->columns(2),
+                            'pending'    => 'Pending',
+                            'paid'       => 'Paid',
+                            'processing' => 'Processing',
+                            'completed'  => 'Completed',
+                            'cancelled'  => 'Cancelled',
+                        ])->required(),
+                ])->columns(2),
         ]);
     }
 
@@ -59,28 +40,33 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->label('Order #')->sortable(),
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Customer')->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('id')->label('Order #')->sortable(),
+                Tables\Columns\TextColumn::make('name')->label('Customer')->searchable(),
+                Tables\Columns\TextColumn::make('email')->searchable(),
                 Tables\Columns\TextColumn::make('phone'),
-                Tables\Columns\TextColumn::make('total')
-                    ->money('LKR')->sortable(),
+                Tables\Columns\TextColumn::make('total')->money('LKR')->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->colors([
+                    ->color(fn(string $state): string => match($state) {
                         'pending'    => 'warning',
                         'paid'       => 'info',
                         'processing' => 'primary',
                         'completed'  => 'success',
                         'cancelled'  => 'danger',
-                    ]),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Date')->dateTime()->sortable(),
+                        default      => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('created_at')->label('Date')->dateTime()->sortable(),
             ])
             ->actions([
+                Tables\Actions\Action::make('view_items')
+                    ->label('Items')
+                    ->icon('heroicon-o-shopping-bag')
+                    ->modalHeading(fn(Order $record) => 'Order #' . $record->id . ' — Items')
+                    ->modalContent(fn(Order $record) => view('filament.order-items', [
+                        'order' => $record->load('items.product')
+                    ]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
