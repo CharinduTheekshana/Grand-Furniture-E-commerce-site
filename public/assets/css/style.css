@@ -1039,6 +1039,20 @@ h3.del-price {
 	left:auto;
 }
 
+@media (max-width: 767px) {
+    .new-product-action {
+        flex-direction: row;
+        justify-content: center;
+        gap: 5px;
+        padding: 6px;
+    }
+    .new-product-action a {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+    .cart_pad { display: none; }
+}
+
 /* ---------7.Banner-Area-Start---------- */
 .single-banner{
 	overflow:hidden;

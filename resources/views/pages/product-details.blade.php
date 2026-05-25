@@ -89,15 +89,11 @@
                                     </button>
                                 </div>
                                 <div class="action-heiper">
-                                    {{-- Sync → Checkout --}}
                                     @auth
                                     <a href="{{ route('checkout.index') }}"><span class="lnr lnr-sync"></span></a>
                                     @else
                                     <a href="#" class="checkout-guest-link"><span class="lnr lnr-sync"></span></a>
                                     @endauth
-                                    <!-- {{-- Cart → Cart page --}}
-                                    <a href="{{ route('cart.index') }}"><span class="lnr lnr-cart"></span></a> -->
-                                    {{-- Wishlist --}}
                                     <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                 </div>
                                 <p>{{ $product->description }}</p>
@@ -116,7 +112,6 @@
                                     <li><a href="#reviews" id="reviews-tab" data-bs-toggle="tab">reviews {{ $reviews->count() }}</a></li>
                                 </ul>
                                 <div class="tab-content">
-                                    {{-- Details Tab --}}
                                     <div class="tab-pane show active" id="details">
                                         <div class="product-info-tab-content">
                                             <p>{{ $product->description ?? 'Premium quality furniture crafted with care.' }}</p>
@@ -128,15 +123,12 @@
                                             </ul>
                                         </div>
                                     </div>
-
-                                    {{-- Reviews Tab --}}
                                     <div class="tab-pane" id="reviews">
                                         @if(session('review_success'))
                                         <div class="alert alert-success mb-3">
                                             <i class="fa fa-check-circle"></i> {{ session('review_success') }}
                                         </div>
                                         @endif
-
                                         @forelse($reviews as $review)
                                         <div class="customer-review-top border-bottom pb-4 mb-4">
                                             <h4>{{ $review->nickname }}</h4>
@@ -154,7 +146,6 @@
                                         @empty
                                         <p>No reviews yet. Be the first to review this product!</p>
                                         @endforelse
-
                                         <div class="customer-review-bottom fix">
                                             <h2>You're reviewing:</h2>
                                             <h2>{{ $product->name }}</h2>
@@ -250,29 +241,212 @@
                     </div>
                 </div>
 
-                {{-- Bestseller --}}
-                <div class="feature-preduct-area hyperion home-page-2 pb-50">
-                    <div class="hyper-title"><h4 class="text-uppercase">bestseller</h4></div>
-                    <div class="shop-sideber-active">
-                        @php $bestsellers = \App\Models\Product::where('is_active',true)->where('id','!=',$product->id)->inRandomOrder()->take(3)->get(); @endphp
-                        <div class="single-product-items">
-                            @foreach($bestsellers as $b)
-                            <div class="single-new-product">
-                                <div class="product-img">
-                                    <a href="{{ route('product.show',$b->slug) }}">
-                                        <img src="{{ $b->image_url }}" class="first_img" alt="{{ $b->name }}" />
-                                    </a>
-                                </div>
-                                <div class="product-content text-center">
-                                    <a href="{{ route('product.show',$b->slug) }}"><h3>{{ Str::limit($b->name,18) }}</h3></a>
-                                    <div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div>
-                                    <h4>LKR {{ number_format($b->price,2) }}</h4>
-                                </div>
-                            </div>
-                            @endforeach
+                {{-- Bestseller: 1 column, 3 cards visible, 2 pages (3+3), arrows + keyboard nav, hover swaps product --}}
+                @php
+                    $bsPool  = \App\Models\Product::where('is_active', true)
+                        ->where('id', '!=', $product->id)
+                        ->inRandomOrder()->get()->values();
+                    $bsCount = $bsPool->count();
+
+                    // 6 pairs: A = display, B = hover (different product)
+                    $bsPairs = [];
+                    for ($bsI = 0; $bsI < min(6, $bsCount); $bsI++) {
+                        $bsA    = $bsPool[$bsI];
+                        $bsBIdx = ($bsI + 6) % $bsCount;
+                        if ($bsPool[$bsBIdx]->id === $bsA->id) $bsBIdx = ($bsBIdx + 1) % $bsCount;
+                        $bsPairs[] = [$bsA, $bsPool[$bsBIdx]];
+                    }
+                @endphp
+
+                <style>
+                .bs-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    border-bottom: 2px solid #c8a96e;
+                    padding-bottom: 10px;
+                    margin-bottom: 16px;
+                }
+                .bs-header h4 {
+                    font-size: 16px;
+                    font-weight: 800;
+                    letter-spacing: 1px;
+                    margin: 0;
+                    color: #111;
+                }
+                .bs-arrows {
+                    display: flex;
+                    align-items: center;
+                    gap: 2px;
+                    color: #bbb;
+                    font-size: 13px;
+                }
+                .bs-arrows button {
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    line-height: 1;
+                    cursor: pointer;
+                    color: #888;
+                    padding: 0 2px;
+                    transition: color 0.2s;
+                }
+                .bs-arrows button:hover { color: #c8a96e; }
+                /* Single column, 3 cards stacked */
+                #bsGrid { display: flex; flex-direction: column; gap: 12px; }
+                .bs-card {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    border: 1px solid #e8e8e8;
+                    background: #fff;
+                    overflow: hidden;
+                    transition: box-shadow 0.2s;
+                    cursor: pointer;
+                }
+                .bs-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+                .bs-card-img {
+                    flex-shrink: 0;
+                    width: 100px;
+                    height: 100px;
+                    overflow: hidden;
+                    background: #f4f4f4;
+                    position: relative;
+                }
+                .bs-card-img img {
+                    position: absolute;
+                    top: 0; left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                    transition: opacity 0.35s ease, transform 0.35s ease;
+                }
+                .bs-card-img .bs-img-first  { opacity: 1; transform: scale(1);    z-index: 1; }
+                .bs-card-img .bs-img-second { opacity: 0; transform: scale(1.06); z-index: 2; }
+                .bs-card:hover .bs-card-img .bs-img-first  { opacity: 0; transform: scale(1.06); }
+                .bs-card:hover .bs-card-img .bs-img-second { opacity: 1; transform: scale(1);    }
+                .bs-card-body {
+                    flex: 1;
+                    padding: 10px 14px;
+                    position: relative;
+                    min-height: 100px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                }
+                .bs-details {
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    padding: 10px 14px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    gap: 4px;
+                    transition: opacity 0.35s ease;
+                }
+                .bs-details-first  { opacity: 1; }
+                .bs-details-second { opacity: 0; }
+                .bs-card:hover .bs-details-first  { opacity: 0; }
+                .bs-card:hover .bs-details-second { opacity: 1; }
+                .bs-card-body a { text-decoration: none; }
+                .bs-card-name {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #222;
+                    margin: 0;
+                    line-height: 1.3;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    transition: color 0.2s;
+                }
+                .bs-card:hover .bs-details-second .bs-card-name { color: #c8a96e; }
+                .bs-card-stars .fa { font-size: 11px; color: #c8a96e; }
+                .bs-card-stars .fa-star-o { color: #ddd; }
+                .bs-card-price { font-size: 13px; font-weight: 700; color: #333; }
+                </style>
+
+                <div class="bs-sidebar pb-50">
+                    <div class="bs-header">
+                        <h4>BESTSELLER</h4>
+                        <div class="bs-arrows">
+                            <button id="bsPrev" onclick="bsNav(-1)">&#8249;</button>
+                            <span>/</span>
+                            <button id="bsNext" onclick="bsNav(1)">&#8250;</button>
                         </div>
                     </div>
+                    <div id="bsGrid"></div>
                 </div>
+
+                <script>
+                var bsData = [
+                    @foreach($bsPairs as [$bsA, $bsB])
+                    @php
+                        $bsRatingA = (int) round(\App\Models\Review::where('product_id',$bsA->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3);
+                        $bsRatingB = (int) round(\App\Models\Review::where('product_id',$bsB->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3);
+                    @endphp
+                    {
+                        a: { name: @json(Str::limit($bsA->name,22)), url: "{{ route('product.show',$bsA->slug) }}", img: @json($bsA->image_url), price: "LKR {{ number_format($bsA->price,2) }}", rating: {{ $bsRatingA }} },
+                        b: { name: @json(Str::limit($bsB->name,22)), url: "{{ route('product.show',$bsB->slug) }}", img: @json($bsB->image_url), price: "LKR {{ number_format($bsB->price,2) }}", rating: {{ $bsRatingB }} }
+                    },
+                    @endforeach
+                ];
+
+                var bsPage = 0;
+                var BS_PER = 3;
+
+                function bsPages() { return Math.max(1, Math.ceil(bsData.length / BS_PER)); }
+
+                function bsStars(r) {
+                    var s = '';
+                    for (var i = 1; i <= 5; i++)
+                        s += '<i class="fa fa-star' + (i > r ? '-o' : '') + '"></i>';
+                    return s;
+                }
+
+                function bsCard(pair) {
+                    var a = pair.a, b = pair.b;
+                    return '<div class="bs-card" onclick="window.location=\'' + a.url + '\'">' +
+                        '<a href="' + a.url + '" class="bs-card-img">' +
+                            '<img src="' + a.img + '" class="bs-img-first" alt="' + a.name + '">' +
+                            '<img src="' + b.img + '" class="bs-img-second" alt="' + b.name + '">' +
+                        '</a>' +
+                        '<div class="bs-card-body">' +
+                            '<div class="bs-details bs-details-first">' +
+                                '<a href="' + a.url + '"><div class="bs-card-name">' + a.name + '</div></a>' +
+                                '<div class="bs-card-stars">' + bsStars(a.rating) + '</div>' +
+                                '<span class="bs-card-price">' + a.price + '</span>' +
+                            '</div>' +
+                            '<div class="bs-details bs-details-second">' +
+                                '<a href="' + b.url + '"><div class="bs-card-name">' + b.name + '</div></a>' +
+                                '<div class="bs-card-stars">' + bsStars(b.rating) + '</div>' +
+                                '<span class="bs-card-price">' + b.price + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+
+                function bsRender() {
+                    var slice = bsData.slice(bsPage * BS_PER, bsPage * BS_PER + BS_PER);
+                    document.getElementById('bsGrid').innerHTML = slice.map(bsCard).join('');
+                }
+
+                function bsNav(dir) {
+                    bsPage = (bsPage + dir + bsPages()) % bsPages();
+                    bsRender();
+                }
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  { e.preventDefault(); bsNav(1); }
+                    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    { e.preventDefault(); bsNav(-1); }
+                });
+
+                document.addEventListener('contextmenu', function() { bsPage = 0; bsRender(); });
+
+                bsRender();
+                </script>
 
                 {{-- Cart Sidebar --}}
                 @auth
@@ -339,8 +513,6 @@
 
 @push('scripts')
 <script>
-// Add to Cart — qty from #qty input, handled by app.blade.php global handler
-// Override qty for this page
 $(document).on('click', '.hyper-page.add-to-cart', function(e) {
     e.preventDefault();
     var productId = $(this).data('id');

@@ -37,7 +37,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([Pages\Dashboard::class])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([StatsOverview::class])
+            ->widgets([
+        StatsOverview::class,
+            \App\Filament\Widgets\RevenueChartWidget::class,
+        ])
             ->navigationItems([
                 NavigationItem::make('View Store')
                     ->url('/', shouldOpenInNewTab: true)
