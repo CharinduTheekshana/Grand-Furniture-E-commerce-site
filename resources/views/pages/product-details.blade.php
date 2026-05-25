@@ -35,12 +35,21 @@
                                         ->inRandomOrder()->take(4)->get();
                                 @endphp
                                 @foreach($thumbProducts as $ti => $tp)
-                                <div class="tab-pane" id="view{{ $ti+2 }}">
-                                    <a class="image-link" href="{{ $tp->image_url }}">
-                                        <img src="{{ $tp->image_url }}" alt="{{ $tp->name }}">
-                                    </a>
-                                </div>
-                                @endforeach
+@php $tpRating = (int) round(\App\Models\Review::where('product_id',$tp->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3); @endphp
+<div class="tab-pane" id="view{{ $ti+2 }}"
+    data-id="{{ $tp->id }}"
+    data-name="{{ $tp->name }}"
+    data-price="{{ number_format($tp->price,2) }}"
+    data-old-price="{{ $tp->old_price ? number_format($tp->old_price,2) : '' }}"
+    data-rating="{{ $tpRating }}"
+    data-description="{{ $tp->description }}"
+    data-stock="{{ $tp->stock }}"
+    data-url="{{ route('product.show', $tp->slug) }}">
+    <a class="image-link" href="{{ $tp->image_url }}">
+        <img src="{{ $tp->image_url }}" alt="{{ $tp->name }}">
+    </a>
+</div>
+@endforeach
                             </div>
                             <ul class="nav sinple-tab-menu" role="tablist">
                                 <li><a class="active" href="#view1" data-bs-toggle="tab">
@@ -92,7 +101,7 @@
                                     @auth
                                     <a href="{{ route('checkout.index') }}"><span class="lnr lnr-sync"></span></a>
                                     @else
-                                    <a href="#" class="checkout-guest-link"><span class="lnr lnr-sync"></span></a>
+                                    <a href="#" class="checkout-guest-link" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
                                     @endauth
                                     <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                 </div>
@@ -544,6 +553,64 @@ $(document).on('click', '.star-rating-input i', function() {
     $(this).closest('.star-rating-input').find('i').each(function(idx) {
         $(this).removeClass('fa-star fa-star-o').addClass(idx < val ? 'fa-star' : 'fa-star-o');
     });
+});
+
+// Thumbnail click → swap main image + all product details
+$(document).on('click', '.sinple-tab-menu a', function() {
+    var tabId = $(this).attr('href'); // e.g. #view2
+
+    // Find matching tab pane
+    var $pane = $(tabId);
+    if (!$pane.length) return;
+
+    // Get product data stored on the pane
+    var name        = $pane.data('name');
+    var price       = $pane.data('price');
+    var oldPrice    = $pane.data('old-price');
+    var rating      = $pane.data('rating');
+    var description = $pane.data('description');
+    var productId   = $pane.data('id');
+    var productUrl  = $pane.data('url');
+    var stock       = $pane.data('stock');
+
+    if (!name) return; // view1 (current product) — no change needed
+
+    // Update name
+    $('.sinple-c-title h3').text(name);
+
+    // Update price
+    if (oldPrice) {
+        $('.price h4').text('LKR ' + price);
+        $('.price .del-price del').text('LKR ' + oldPrice);
+    } else {
+        $('.price h4').text('LKR ' + price);
+        $('.price .del-price').hide();
+    }
+
+    // Update description
+    $('.product-simple-content > p').text(description);
+
+    // Update rating stars
+    var $stars = $('.product-price-star.star-2');
+    $stars.find('i').remove();
+    for (var i = 1; i <= 5; i++) {
+        $stars.prepend('<i class="fa fa-star' + (i > rating ? '-o' : '') + '"></i>');
+    }
+
+    // Update stock
+    if (stock > 0) {
+        $('.checkbox span').html('<i class="fa fa-check-square"></i> In stock');
+    } else {
+        $('.checkbox span').html('<i class="fa fa-times-circle"></i> Out of stock');
+    }
+
+    // Update add to cart button data-id
+    $('.single_add_to_cart_button').data('id', productId);
+    $('.wishlist-btn').data('id', productId);
+    $('.checkout-guest-link').data('id', productId);
+
+    // Update product URL (sync button for auth users)
+    $('a[href*="checkout"]').not('.checkout-guest-link').attr('href', productUrl);
 });
 </script>
 @endpush

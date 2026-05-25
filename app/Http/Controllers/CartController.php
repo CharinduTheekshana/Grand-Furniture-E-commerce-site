@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    //  Users' items fetch, total calculate
     public function index()
     {
         if (!auth()->check()) return redirect()->route('login');
@@ -34,10 +35,11 @@ class CartController extends Controller
         return response()->json(['count' => $count, 'message' => 'Added to cart!']);
     }
 
+    // Quantity update, validation, DB save
     public function update(Request $request, CartItem $item)
     {
         if ($item->user_id !== auth()->id()) abort(403);
-        $item->update(['quantity' => max(1, $request->quantity)]);
+        $item->update(['quantity' => max(10, $request->quantity)]);
         return redirect()->route('cart.index');
     }
 

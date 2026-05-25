@@ -116,7 +116,21 @@
 
         $(document).on('click', '.checkout-guest-link', function(e) {
             e.preventDefault();
-            saveIntendedAndLogin('checkout', 0);
+            var productId = $(this).data('id') || 0;
+            var qty = parseInt($('#qty').val()) || 1;
+            saveIntendedAndLogin('checkout', productId, qty);
+        });
+
+        $(document).on('click', '.home-checkout-btn', function(e) {
+            e.preventDefault();
+            var productId = $(this).data('id');
+            @auth
+            $.post('/cart/add/' + productId, { qty: 1 }, function() {
+                window.location.href = '{{ route("checkout.index") }}';
+            });
+            @else
+            saveIntendedAndLogin('checkout', productId, 1);
+            @endauth
         });
     </script>
 

@@ -39,8 +39,21 @@ class AuthenticatedSessionController extends Controller
             'qty'     => $intendedQty,
         ]);
 
-        // Checkout — product_id not needed
+        // Checkout — add product to cart first if provided, then go to checkout
         if ($intendedAction === 'checkout') {
+            if ($intendedProduct) {
+                $cartItem = CartItem::where('user_id', auth()->id())
+                    ->where('product_id', $intendedProduct)->first();
+                if ($cartItem) {
+                    $cartItem->increment('quantity', $intendedQty);
+                } else {
+                    CartItem::create([
+                        'user_id'    => auth()->id(),
+                        'product_id' => $intendedProduct,
+                        'quantity'   => $intendedQty,
+                    ]);
+                }
+            }
             session()->forget(['intended_action', 'intended_product', 'intended_qty']);
             return redirect()->route('checkout.index');
         }

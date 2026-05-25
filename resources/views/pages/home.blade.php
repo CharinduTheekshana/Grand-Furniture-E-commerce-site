@@ -99,7 +99,7 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                             @if($disc > 0)<span class="new">{{ $disc }}%</span>@endif
                         @endif
                         <div class="new-product-action">
-                            <a href="{{ route('product.show', $product->slug) }}"><span class="lnr lnr-sync"></span></a>
+                            <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
                             <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
                             <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                         </div>
@@ -203,7 +203,7 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                     <div class="product-icon-wrapper">
                         <div class="product-icon">
                             <ul>
-                                <li><a href="{{ route('product.show', $product->slug) }}"><span class="lnr lnr-sync"></span></a></li>
+                                <li><a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a></li>
                                 <li><a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a></li>
                                 <li><a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart"></span></a></li>
                             </ul>
@@ -278,7 +278,7 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
     data-url="{{ $second ? route('product.show', $second->slug) : route('product.show', $product->slug) }}" />
                                 </a>
                                 <div class="new-product-action feature-action">
-                                    <a href="{{ route('product.show', $product->slug) }}"><span class="lnr lnr-sync"></span></a>
+                                    <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
                                     <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
                                     <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                 </div>
@@ -319,7 +319,7 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
     data-url="{{ $second ? route('product.show', $second->slug) : route('product.show', $product->slug) }}" />
                                 </a>
                                 <div class="new-product-action feature-action">
-                                    <a href="{{ route('product.show', $product->slug) }}"><span class="lnr lnr-sync"></span></a>
+                                    <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
                                     <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
                                     <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                 </div>

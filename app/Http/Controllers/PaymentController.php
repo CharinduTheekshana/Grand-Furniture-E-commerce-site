@@ -7,12 +7,13 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-    // Show payment page
+    // Show payment form page
     public function show(Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);
         if ($order->status !== 'pending') {
-            return redirect()->route('orders.index')->with('error', 'Order already processed.');
+            return redirect()->route('orders.show', $order->id)
+    ->with('success', '🎉 Payment successful! Order #' . $order->id . ' has been confirmed.');
         }
         return view('pages.payment', compact('order'));
     }
@@ -36,6 +37,6 @@ class PaymentController extends Controller
         $order->update(['status' => 'paid']);
 
         return redirect()->route('orders.index')
-            ->with('success', '🎉 Payment successful! Order' . $order->id . ' confirmed.');
+            ->with('success', '🎉 Payment successful!' . ' confirmed.');
     }
 }

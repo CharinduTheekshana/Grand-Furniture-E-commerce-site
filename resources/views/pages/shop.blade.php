@@ -64,7 +64,7 @@
                                             <a href="{{ route('product.show',$product->slug) }}"><img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}" /></a>
                                             @if($product->old_price) @php $d=round(($product->old_price-$product->price)/$product->old_price*100); @endphp @if($d>0)<span class="new">{{ $d }}%</span>@endif @endif
                                             <div class="new-product-action">
-                                                <a href="{{ route('product.show',$product->slug) }}"><span class="lnr lnr-sync"></span></a>
+                                                <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
                                                 <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
                                                 <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                             </div>

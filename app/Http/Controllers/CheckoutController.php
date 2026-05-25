@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
+    // Cart items + total show
     public function index()
     {
         $cartItems = CartItem::with('product')->where('user_id', auth()->id())->get();
@@ -61,6 +62,7 @@ class CheckoutController extends Controller
         return view('pages.orders', compact('orders'));
     }
 
+    // Order details page, only for owner
     public function show(Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);

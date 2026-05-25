@@ -17,6 +17,7 @@ class ProductController extends Controller
         return view('pages.product-details', compact('product', 'relatedProducts', 'reviews'));
     }
 
+    //Review form submit, validate, DB save
     public function review(Request $request, $slug)
     {
         $product = Product::where('slug', $slug)->firstOrFail();
@@ -45,6 +46,7 @@ class ProductController extends Controller
             ->with('review_success', 'Your review has been submitted successfully!');
     }
 
+    // User's own reviews page
     public function myReviews()
     {
         $reviews = Review::with('product')

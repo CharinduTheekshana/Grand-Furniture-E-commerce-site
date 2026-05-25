@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 class ShopController extends Controller
 {
+    //new products (10), top interesting products (6), featured (4), sale products (4), blogs (6) pass (home.blade.php)
     public function index()
     {
         $productColumns = ['id', 'name', 'slug', 'price', 'old_price', 'sale_price', 'image', 'is_featured', 'is_active', 'created_at'];
@@ -43,6 +44,7 @@ class ShopController extends Controller
         return view('pages.home', $homeData);
     }
 
+    // Category/search/price/sort filter, paginate(12) pass (shop.blade.php)
     public function shop(Request $request)
     {
         $perPage = (int) ($request->per_page ?? 12);
