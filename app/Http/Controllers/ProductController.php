@@ -8,13 +8,48 @@ class ProductController extends Controller
 {
     public function show($slug)
     {
-        $product = Product::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $product         = Product::where('slug', $slug)->where('is_active', true)->firstOrFail();
         $relatedProducts = Product::where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
-            ->where('is_active', true)
-            ->take(4)->get();
-        $reviews = Review::with('user')->where('product_id', $product->id)->latest()->get();
-        return view('pages.product-details', compact('product', 'relatedProducts', 'reviews'));
+                                ->where('id', '!=', $product->id)
+                                ->where('is_active', true)->take(4)->get();
+        $reviews         = Review::with('user')->where('product_id', $product->id)->latest()->get();
+        $avgRating       = $reviews->count() > 0
+                            ? (int) round($reviews->avg(fn($r) => ($r->quality + $r->price + $r->value) / 3))
+                            : 3;
+
+        // Bestseller sidebar data
+        $bsPool  = Product::where('is_active', true)->where('id', '!=', $product->id)
+                        ->inRandomOrder()->get()->unique('id')->values();
+        $bsPairs = [];
+        $bsCount = $bsPool->count();
+        for ($i = 0; $i < min(6, $bsCount); $i++) {
+            $a    = $bsPool[$i];
+            $bIdx = ($i + 1) % $bsCount;
+            if ($bsPool[$bIdx]->id === $a->id && $bsCount > 1) {
+                $bIdx = ($bIdx + 1) % $bsCount;
+            }
+            $bsPairs[] = [
+                'a'       => $a,
+                'aRating' => (int) round(Review::where('product_id', $a->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3),
+                'b'       => $bsPool[$bIdx],
+                'bRating' => (int) round(Review::where('product_id', $bsPool[$bIdx]->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3),
+            ];
+        }
+
+        // Thumbnail products
+        $thumbProducts = Product::where('is_active', true)
+        ->where('id', '!=', $product->id)
+        ->inRandomOrder()->take(4)->get()
+        ->each(function($p) {
+            $p->avgRating = (int) round(
+                Review::where('product_id', $p->id)
+                    ->avg(\DB::raw('(quality+price+value)/3')) ?? 3
+            );
+        });
+
+        return view('pages.product-details', compact(
+            'product', 'relatedProducts', 'reviews', 'avgRating', 'bsPairs', 'thumbProducts'
+        ));
     }
 
     //Review form submit, validate, DB save

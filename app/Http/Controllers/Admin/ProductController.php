@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
-use App\Events\ProductUpdated;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -57,7 +57,7 @@ class ProductController extends Controller
 
         $product = Product::create($validated);
 
-        try { event(new ProductUpdated($product, 'created')); } catch (\Exception $e) {}
+        
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product "' . $product->name . '" created successfully!');
@@ -102,7 +102,7 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        try { event(new ProductUpdated($product, 'updated')); } catch (\Exception $e) {}
+        
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully!');

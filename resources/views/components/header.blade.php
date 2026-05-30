@@ -5,25 +5,17 @@
                 <div class="col-xl-9 col-md-8">
 
                     {{-- Language --}}
-                    <div class="dropdown header-left-menu">
-                        <button class="btn btn-default header-left-menu dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            English <i class="fa fa-angle-down"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a href="#"> Tamil </a></li>
-                        </ul>
-                    </div>
-
-                    <!-- {{-- Currency --}}
-                    <div class="dropdown header-left-menu">
-                        <button class="btn btn-default header-left-menu dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            GBP <i class="fa fa-angle-down"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a href="#"> EUR - Euro</a></li>
-                            <li><a href="#"> USD - US Dollar</a></li>
-                        </ul>
-                    </div> -->
+<button class="btn btn-default header-left-menu dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    {{ app()->getLocale() === 'ta' ? 'தமிழ்' : 'English' }} <i class="fa fa-angle-down"></i>
+</button>
+<ul class="dropdown-menu">
+    @if(app()->getLocale() !== 'en')
+    <li><a href="{{ route('locale.switch', 'en') }}">English</a></li>
+    @endif
+    @if(app()->getLocale() !== 'ta')
+    <li><a href="{{ route('locale.switch', 'ta') }}">தமிழ்</a></li>
+    @endif
+</ul>
 
                     {{-- My Account — Grand exact structure --}}
                     <div class="header-top-left">
@@ -87,7 +79,7 @@
                             <li>
                                 <a href="{{ auth()->check() ? route('wishlist.index') : route('login') }}">
                                     <span class="lnr lnr-heart"></span> wish list
-                                    (@auth{{ \App\Models\Wishlist::where('user_id',auth()->id())->count() }}@else 0 @endauth)
+                                    ({{ $wishlistCount }})
                                 </a>
                             </li>
                             <li>
@@ -124,14 +116,11 @@
                     <div class="header-bottom-right">
                         <div class="shop-cart">
                             <a href="{{ route('cart.index') }}">
-                                <span class="lnr lnr-cart"></span>My Cart - items(<span class="cart-count">@auth{{ \App\Models\CartItem::where('user_id',auth()->id())->sum('quantity') }}@else 0 @endauth</span>)
+                                <span class="lnr lnr-cart"></span>My Cart - items(<span class="cart-count">{{ auth()->check() ? $hCart->sum('quantity') : 0 }}</span>)
                             </a>
                         </div>
                         @auth
-                        @php
-                            $hCart  = \App\Models\CartItem::with('product')->where('user_id',auth()->id())->take(3)->get();
-                            $hTotal = $hCart->sum(fn($i) => ($i->product->price ?? 0) * $i->quantity);
-                        @endphp
+                        
                         <div class="shop-cart-hover fix">
                             <ul>
                                 @forelse($hCart as $item)

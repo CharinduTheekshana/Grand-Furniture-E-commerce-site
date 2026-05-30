@@ -4,7 +4,7 @@
 
 {{-- Load all products once (prevents N+1 queries) --}}
 @php
-    $allProducts = \App\Models\Product::where('is_active', true)->get();
+    // $allProducts = \App\Models\Product::where('is_active', true)->get();
     // Shuffle for row 2 — different order
     $newProductsRow2 = $newProducts->shuffle();
 @endphp

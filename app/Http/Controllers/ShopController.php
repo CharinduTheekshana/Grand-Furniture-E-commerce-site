@@ -11,8 +11,10 @@ class ShopController extends Controller
     public function index()
     {
         $productColumns = ['id', 'name', 'slug', 'price', 'old_price', 'sale_price', 'image', 'is_featured', 'is_active', 'created_at'];
+        $allProducts = Product::where('is_active', true)->get();
 
         $homeData = [
+            'allProducts'  => $allProducts,
             'newProducts' => Product::where('is_active', true)
                 ->select($productColumns)
                 ->latest()

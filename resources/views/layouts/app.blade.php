@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/linearicons-icon-font.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('style.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}">
     <script src="{{ asset('assets/js/vendor/modernizr-2.8.3.min.js') }}"></script>
@@ -118,7 +118,13 @@
             e.preventDefault();
             var productId = $(this).data('id') || 0;
             var qty = parseInt($('#qty').val()) || 1;
+            @auth
+            $.post('/cart/add/' + productId, { qty: qty }, function() {
+                window.location.href = '{{ route("checkout.index") }}';
+            });
+            @else
             saveIntendedAndLogin('checkout', productId, qty);
+            @endauth
         });
 
         $(document).on('click', '.home-checkout-btn', function(e) {

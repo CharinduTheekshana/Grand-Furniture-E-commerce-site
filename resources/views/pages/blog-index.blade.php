@@ -62,7 +62,7 @@
                         <div class="sidebar-title"><h4>Recent Posts</h4></div>
                         <div class="sidebar-list">
                             <ul>
-                                @foreach(\App\Models\Blog::where('is_published',true)->latest()->take(5)->get() as $recent)
+                                @foreach($recentBlogs as $recent)
                                 <li><a href="{{ route('blog.show', $recent->slug) }}">{{ Str::limit($recent->title, 35) }}</a></li>
                                 @endforeach
                             </ul>
@@ -74,12 +74,7 @@
                         <div class="sidebar-title"><h4>Archive</h4></div>
                         <div class="sidebar-list">
                             <ul>
-                                @php
-                                    $archives = \App\Models\Blog::where('is_published',true)
-                                        ->selectRaw('YEAR(created_at) year, MONTH(created_at) month, COUNT(*) count')
-                                        ->groupBy('year','month')
-                                        ->orderByDesc('year')->orderByDesc('month')->get();
-                                @endphp
+                                
                                 @foreach($archives as $archive)
                                 <li>
                                     <a href="{{ route('blog.index', ['month'=>$archive->month, 'year'=>$archive->year]) }}">

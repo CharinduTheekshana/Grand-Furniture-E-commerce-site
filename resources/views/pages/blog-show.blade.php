@@ -37,12 +37,12 @@
                 </div>
 
                 {{-- Related Posts --}}
-                @php $related = \App\Models\Blog::where('is_published',true)->where('id','!=',$blog->id)->latest()->take(3)->get(); @endphp
-                @if($related->count() > 0)
+                
+                @if($relatedBlogs->count() > 0)
                 <div style="margin-top:50px;border-top:2px solid #eee;padding-top:30px;">
                     <h4 style="text-transform:uppercase;margin-bottom:25px;">Related Posts</h4>
                     <div class="row">
-                        @foreach($related as $r)
+                        @foreach($relatedBlogs as $r)
                         <div class="col-md-4">
                             <div class="single-blog" style="margin-bottom:20px;">
                                 <div class="blog-img">
@@ -77,7 +77,7 @@
                         <div class="sidebar-title"><h4>Recent Posts</h4></div>
                         <div class="sidebar-list">
                             <ul>
-                                @foreach(\App\Models\Blog::where('is_published',true)->latest()->take(5)->get() as $recent)
+                                @foreach($recentBlogs as $recent)
                                 <li><a href="{{ route('blog.show',$recent->slug) }}" {{ $recent->id==$blog->id?'style=font-weight:bold':'' }}>
                                     {{ Str::limit($recent->title,35) }}
                                 </a></li>
@@ -89,11 +89,7 @@
                         <div class="sidebar-title"><h4>Archive</h4></div>
                         <div class="sidebar-list">
                             <ul>
-                                @php
-                                    $archives = \App\Models\Blog::where('is_published',true)
-                                        ->selectRaw('YEAR(created_at) year, MONTH(created_at) month, COUNT(*) count')
-                                        ->groupBy('year','month')->orderByDesc('year')->orderByDesc('month')->get();
-                                @endphp
+                                
                                 @foreach($archives as $archive)
                                 <li><a href="{{ route('blog.index',['month'=>$archive->month,'year'=>$archive->year]) }}">
                                     {{ \Carbon\Carbon::createFromDate($archive->year,$archive->month,1)->format('F Y') }} ({{ $archive->count }})

@@ -29,27 +29,23 @@
                                         <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
                                     </a>
                                 </div>
-                                @php
-                                    $thumbProducts = \App\Models\Product::where('is_active',true)
-                                        ->where('id','!=',$product->id)
-                                        ->inRandomOrder()->take(4)->get();
-                                @endphp
+                                
                                 @foreach($thumbProducts as $ti => $tp)
-@php $tpRating = (int) round(\App\Models\Review::where('product_id',$tp->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3); @endphp
-<div class="tab-pane" id="view{{ $ti+2 }}"
-    data-id="{{ $tp->id }}"
-    data-name="{{ $tp->name }}"
-    data-price="{{ number_format($tp->price,2) }}"
-    data-old-price="{{ $tp->old_price ? number_format($tp->old_price,2) : '' }}"
-    data-rating="{{ $tpRating }}"
-    data-description="{{ $tp->description }}"
-    data-stock="{{ $tp->stock }}"
-    data-url="{{ route('product.show', $tp->slug) }}">
-    <a class="image-link" href="{{ $tp->image_url }}">
-        <img src="{{ $tp->image_url }}" alt="{{ $tp->name }}">
-    </a>
-</div>
-@endforeach
+                                
+                                <div class="tab-pane" id="view{{ $ti+2 }}"
+                                    data-id="{{ $tp->id }}"
+                                    data-name="{{ $tp->name }}"
+                                    data-price="{{ number_format($tp->price,2) }}"
+                                    data-old-price="{{ $tp->old_price ? number_format($tp->old_price,2) : '' }}"
+                                    data-rating="{{ $tp->avgRating }}"
+                                    data-description="{{ $tp->description }}"
+                                    data-stock="{{ $tp->stock }}"
+                                    data-url="{{ route('product.show', $tp->slug) }}">
+                                    <a class="image-link" href="{{ $tp->image_url }}">
+                                        <img src="{{ $tp->image_url }}" alt="{{ $tp->name }}">
+                                    </a>
+                                </div>
+                                @endforeach
                             </div>
                             <ul class="nav sinple-tab-menu" role="tablist">
                                 <li><a class="active" href="#view1" data-bs-toggle="tab">
@@ -76,7 +72,7 @@
                                 </div>
                                 <span>SKU:{{ strtoupper(substr(str_replace('-','',$product->slug),0,6)) }}</span>
                                 <div class="product-price-star star-2">
-                                    @php $avgRating = $reviews->count() > 0 ? round($reviews->avg(fn($r)=>($r->quality+$r->price+$r->value)/3)) : 3; @endphp
+                                    
                                     @for($s=1;$s<=5;$s++)<i class="fa fa-star{{ $s > $avgRating ? '-o' : '' }}"></i>@endfor
                                     <span>({{ $reviews->count() }} Review{{ $reviews->count()!=1?'s':'' }})&nbsp;|&nbsp; Add Your Review</span>
                                 </div>
@@ -250,132 +246,6 @@
                     </div>
                 </div>
 
-                {{-- Bestseller: 1 column, 3 cards visible, 2 pages (3+3), arrows + keyboard nav, hover swaps product --}}
-                @php
-                    $bsPool  = \App\Models\Product::where('is_active', true)
-                        ->where('id', '!=', $product->id)
-                        ->inRandomOrder()->get()->values();
-                    $bsCount = $bsPool->count();
-
-                    // 6 pairs: A = display, B = hover (different product)
-                    $bsPairs = [];
-                    for ($bsI = 0; $bsI < min(6, $bsCount); $bsI++) {
-                        $bsA    = $bsPool[$bsI];
-                        $bsBIdx = ($bsI + 6) % $bsCount;
-                        if ($bsPool[$bsBIdx]->id === $bsA->id) $bsBIdx = ($bsBIdx + 1) % $bsCount;
-                        $bsPairs[] = [$bsA, $bsPool[$bsBIdx]];
-                    }
-                @endphp
-
-                <style>
-                .bs-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    border-bottom: 2px solid #c8a96e;
-                    padding-bottom: 10px;
-                    margin-bottom: 16px;
-                }
-                .bs-header h4 {
-                    font-size: 16px;
-                    font-weight: 800;
-                    letter-spacing: 1px;
-                    margin: 0;
-                    color: #111;
-                }
-                .bs-arrows {
-                    display: flex;
-                    align-items: center;
-                    gap: 2px;
-                    color: #bbb;
-                    font-size: 13px;
-                }
-                .bs-arrows button {
-                    background: none;
-                    border: none;
-                    font-size: 20px;
-                    line-height: 1;
-                    cursor: pointer;
-                    color: #888;
-                    padding: 0 2px;
-                    transition: color 0.2s;
-                }
-                .bs-arrows button:hover { color: #c8a96e; }
-                /* Single column, 3 cards stacked */
-                #bsGrid { display: flex; flex-direction: column; gap: 12px; }
-                .bs-card {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    border: 1px solid #e8e8e8;
-                    background: #fff;
-                    overflow: hidden;
-                    transition: box-shadow 0.2s;
-                    cursor: pointer;
-                }
-                .bs-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-                .bs-card-img {
-                    flex-shrink: 0;
-                    width: 100px;
-                    height: 100px;
-                    overflow: hidden;
-                    background: #f4f4f4;
-                    position: relative;
-                }
-                .bs-card-img img {
-                    position: absolute;
-                    top: 0; left: 0;
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    display: block;
-                    transition: opacity 0.35s ease, transform 0.35s ease;
-                }
-                .bs-card-img .bs-img-first  { opacity: 1; transform: scale(1);    z-index: 1; }
-                .bs-card-img .bs-img-second { opacity: 0; transform: scale(1.06); z-index: 2; }
-                .bs-card:hover .bs-card-img .bs-img-first  { opacity: 0; transform: scale(1.06); }
-                .bs-card:hover .bs-card-img .bs-img-second { opacity: 1; transform: scale(1);    }
-                .bs-card-body {
-                    flex: 1;
-                    padding: 10px 14px;
-                    position: relative;
-                    min-height: 100px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                }
-                .bs-details {
-                    position: absolute;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    padding: 10px 14px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    gap: 4px;
-                    transition: opacity 0.35s ease;
-                }
-                .bs-details-first  { opacity: 1; }
-                .bs-details-second { opacity: 0; }
-                .bs-card:hover .bs-details-first  { opacity: 0; }
-                .bs-card:hover .bs-details-second { opacity: 1; }
-                .bs-card-body a { text-decoration: none; }
-                .bs-card-name {
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: #222;
-                    margin: 0;
-                    line-height: 1.3;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    transition: color 0.2s;
-                }
-                .bs-card:hover .bs-details-second .bs-card-name { color: #c8a96e; }
-                .bs-card-stars .fa { font-size: 11px; color: #c8a96e; }
-                .bs-card-stars .fa-star-o { color: #ddd; }
-                .bs-card-price { font-size: 13px; font-weight: 700; color: #333; }
-                </style>
-
                 <div class="bs-sidebar pb-50">
                     <div class="bs-header">
                         <h4>BESTSELLER</h4>
@@ -390,11 +260,8 @@
 
                 <script>
                 var bsData = [
-                    @foreach($bsPairs as [$bsA, $bsB])
-                    @php
-                        $bsRatingA = (int) round(\App\Models\Review::where('product_id',$bsA->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3);
-                        $bsRatingB = (int) round(\App\Models\Review::where('product_id',$bsB->id)->avg(\DB::raw('(quality+price+value)/3')) ?? 3);
-                    @endphp
+                    @foreach($bsPairs as $pair)
+                    @php $bsA = $pair['a']; $bsB = $pair['b']; $bsRatingA = $pair['aRating']; $bsRatingB = $pair['bRating']; @endphp
                     {
                         a: { name: @json(Str::limit($bsA->name,22)), url: "{{ route('product.show',$bsA->slug) }}", img: @json($bsA->image_url), price: "LKR {{ number_format($bsA->price,2) }}", rating: {{ $bsRatingA }} },
                         b: { name: @json(Str::limit($bsB->name,22)), url: "{{ route('product.show',$bsB->slug) }}", img: @json($bsB->image_url), price: "LKR {{ number_format($bsB->price,2) }}", rating: {{ $bsRatingB }} }
@@ -459,14 +326,11 @@
 
                 {{-- Cart Sidebar --}}
                 @auth
-                @php
-                    $sCart  = \App\Models\CartItem::with('product')->where('user_id',auth()->id())->take(3)->get();
-                    $sTotal = $sCart->sum(fn($i)=>($i->product->price??0)*$i->quantity);
-                @endphp
-                @if($sCart->count() > 0)
+                
+                @if($hCart->count() > 0)
                 <div class="bedroom-sideber mt-40">
                     <div class="bedroom-title text-uppercase"><h4>My Cart</h4></div>
-                    @foreach($sCart as $item)
+                    @foreach($hCart as $item)
                     <div class="d-flex gap-2 py-2 border-bottom">
                         <img src="{{ $item->product->image_url }}" width="50" height="50"
                              class="object-fit-cover" alt="{{ $item->product->name }}">
@@ -476,7 +340,7 @@
                         </div>
                     </div>
                     @endforeach
-                    <p class="mt-2 fw-bold">Total: LKR {{ number_format($sTotal,2) }}</p>
+                    <p class="mt-2 fw-bold">Total: LKR {{ number_format($hTotal,2) }}</p>
                     <a href="{{ route('checkout.index') }}" class="grand-btn d-block text-center mt-2">Checkout</a>
                 </div>
                 @endif
@@ -492,9 +356,9 @@
                 <div class="bedroom-sideber mt-40">
                     <div class="bedroom-title text-uppercase"><h4>My Wish List</h4></div>
                     @auth
-                        @php $wc = \App\Models\Wishlist::where('user_id',auth()->id())->count(); @endphp
-                        @if($wc > 0)
-                            <p>You have {{ $wc }} item(s). <a href="{{ route('wishlist.index') }}">View</a></p>
+                        
+                        @if($wishlistCount > 0)
+                            <p>You have {{ $wishlistCount }} item(s). <a href="{{ route('wishlist.index') }}">View</a></p>
                         @else
                             <p>You have no items in your wish list.</p>
                         @endif

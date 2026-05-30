@@ -31,8 +31,8 @@
                 </div>
                 <div class="sideber-color mt-40"><h3 class="bedroom-side-title">Color</h3><ul><li><a href="#"></a></li><li class="bg-colo-3"><a href="#"></a></li><li class="bg-colo-4"><a href="#"></a></li><li class="bg-colo-5"><a href="#"></a></li><li class="bg-colo-6"><a href="#"></a></li></ul></div>
                 <div class="bedroom-sideber mt-40"><div class="bedroom-title text-uppercase"><h4>My Wish List</h4></div>
-                    @auth @php $wc = \App\Models\Wishlist::where('user_id',auth()->id())->count(); @endphp
-                    @if($wc > 0)<p>You have <strong>{{ $wc }}</strong> item(s). <a href="{{ route('wishlist.index') }}">View</a></p>@else<p>You have no items in your wish list.</p>@endif
+                    @auth
+                    @if($wishlistCount > 0)<p>You have <strong>{{ $wishlistCount }}</strong> item(s). <a href="{{ route('wishlist.index') }}">View</a></p>@else<p>You have no items in your wish list.</p>@endif
                     @else<p>You have no items in your wish list.</p>@endauth
                 </div>
             </div>

@@ -15,17 +15,26 @@ class BlogController extends Controller
             $query->where('title', 'like', '%' . $request->q . '%');
         }
 
-        $blogs = $query->paginate(6);
+        $blogs       = $query->paginate(6);
+        $recentBlogs = Blog::where('is_published', true)->latest()->take(5)->get();
+        $archives    = Blog::where('is_published', true)
+                        ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as count')
+                        ->groupBy('year', 'month')
+                        ->orderByDesc('year')->orderByDesc('month')->get();
 
-        return view('pages.blog-index', compact('blogs'));
+        return view('pages.blog-index', compact('blogs', 'recentBlogs', 'archives'));
     }
 
-    public function show(string $slug)
+    public function show($slug)
     {
-        $blog = Blog::where('slug', $slug)
-                    ->where('is_published', true)
-                    ->firstOrFail();
+        $blog         = Blog::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $relatedBlogs = Blog::where('is_published', true)->where('id', '!=', $blog->id)->latest()->take(3)->get();
+        $recentBlogs  = Blog::where('is_published', true)->latest()->take(5)->get();
+        $archives     = Blog::where('is_published', true)
+                            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as count')
+                            ->groupBy('year', 'month')
+                            ->orderByDesc('year')->orderByDesc('month')->get();
 
-        return view('pages.blog-show', compact('blog'));
+        return view('pages.blog-show', compact('blog', 'relatedBlogs', 'recentBlogs', 'archives'));
     }
 }

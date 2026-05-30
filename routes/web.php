@@ -21,6 +21,10 @@ Route::post('/admin/logout', function() {
     return redirect('/');
 })->name('filament.admin.auth.logout');
 
+// Language switcher route
+Route::get('/locale/{locale}', [App\Http\Controllers\LocaleController::class, 'switch'])
+    ->name('locale.switch');
+
 // Save intended action for guest users
 Route::post('/save-intended', function(\Illuminate\Http\Request $request) {
     session([
