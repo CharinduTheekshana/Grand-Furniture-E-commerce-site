@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Events\OrderPlaced;
 use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
-    // Cart items + total show
     public function index()
     {
         $cartItems = CartItem::with('product')->where('user_id', auth()->id())->get();
@@ -28,7 +28,6 @@ class CheckoutController extends Controller
         $subtotal = $cartItems->sum(fn($i) => ($i->product->sale_price ?? $i->product->price) * $i->quantity);
         $total    = $subtotal + $shipping;
 
-        // Create order with pending status
         $order = Order::create([
             'user_id' => auth()->id(),
             'name'    => $request->first_name . ' ' . $request->last_name,
@@ -39,7 +38,6 @@ class CheckoutController extends Controller
             'status'  => 'pending',
         ]);
 
-        // Save order items
         foreach ($cartItems as $item) {
             OrderItem::create([
                 'order_id'   => $order->id,
@@ -49,10 +47,17 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // Clear cart
         CartItem::where('user_id', auth()->id())->delete();
 
-        // Redirect to payment page
+        event(new OrderPlaced($order));
+
+        // Send order confirmation email
+        try {
+            \Mail::to($order->email)->send(new \App\Mail\OrderPlacedMail($order));
+        } catch (\Exception $e) {
+            
+        }
+
         return redirect()->route('payment.show', $order->id);
     }
 
@@ -62,7 +67,6 @@ class CheckoutController extends Controller
         return view('pages.orders', compact('orders'));
     }
 
-    // Order details page, only for owner
     public function show(Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);
@@ -73,14 +77,10 @@ class CheckoutController extends Controller
     public function confirm(Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);
-        
-        // Only processing orders can be confirmed
         if ($order->status !== 'processing') {
             return back()->with('error', 'Order cannot be confirmed at this stage.');
         }
-        
         $order->update(['status' => 'completed']);
-        
         return redirect()->route('orders.index')
             ->with('success', 'Order #' . $order->id . ' confirmed as received!');
     }

@@ -26,7 +26,7 @@ class AuthenticatedSessionController extends Controller
 
         // Admin redirect
         if (auth()->user()->email === env('ADMIN_EMAIL', 'admin@gmail.com')) {
-            return redirect('/admin');
+            return redirect('/admin-panel/dashboard');
         }
 
         $intendedAction  = session('intended_action');

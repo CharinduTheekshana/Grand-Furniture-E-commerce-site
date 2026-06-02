@@ -5,37 +5,34 @@ namespace App\Events;
 use App\Models\Product;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class ProductUpdated
+class ProductUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public ?Product $product = null;
-    public string $action = 'updated';
+    public ?Product $product;
+    public string $action;
 
-    /**
-     * Create a new event instance.
-     */
     public function __construct(?Product $product = null, string $action = 'updated')
     {
         $this->product = $product;
-        $this->action = $action;
+        $this->action  = $action;
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
     public function broadcastOn(): array
     {
+        return [new Channel('products')];
+    }
+
+    public function broadcastWith(): array
+    {
         return [
-            new PrivateChannel('channel-name'),
+            'id'     => $this->product?->id,
+            'name'   => $this->product?->name,
+            'action' => $this->action,
         ];
     }
 }

@@ -13,13 +13,20 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\ContactController as AdminContactController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
 
 Route::post('/admin/logout', function() {
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
     return redirect('/');
-})->name('filament.admin.auth.logout');
+})->name('admin.logout');
 
 // Language switcher route
 Route::get('/locale/{locale}', [App\Http\Controllers\LocaleController::class, 'switch'])
@@ -63,6 +70,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}',  [CheckoutController::class, 'show'])->name('orders.show');
 
     Route::get('/reviews', [ProductController::class, 'myReviews'])->name('reviews.index');
+
+    Route::post('/coupon/apply',  [CouponController::class, 'apply'])->name('coupon.apply');
+    Route::post('/coupon/remove', [CouponController::class, 'remove'])->name('coupon.remove');
 });
 
 // ─── CUSTOM ADMIN PANEL ────────────────────────────────────────
@@ -73,6 +83,14 @@ Route::middleware(['auth'])
     ->group(function () {
 
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Categories
+        Route::get('/categories',              [AdminCategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/create',       [AdminCategoryController::class, 'create'])->name('categories.create');
+        Route::post('/categories',             [AdminCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{category}/edit', [AdminCategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('/categories/{category}',   [AdminCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{category}',[AdminCategoryController::class, 'destroy'])->name('categories.destroy');
 
         // Products
         Route::get('/products',                   [AdminProductController::class, 'index'])->name('products.index');
@@ -92,6 +110,30 @@ Route::middleware(['auth'])
 
         // Contacts
         Route::get('/contacts',                   [AdminContactController::class, 'index'])->name('contacts.index');
+    
+        // Customers
+        Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+
+        // Orders
+        Route::get('/orders',                  [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}',          [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+
+        // Reviews
+        Route::get('/reviews',             [AdminReviewController::class, 'index'])->name('admin-reviews.index');
+        Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('admin-reviews.destroy');
+
+        // Coupons
+        Route::get('/coupons',               [AdminCouponController::class, 'index'])->name('coupons.index');
+        Route::post('/coupons',              [AdminCouponController::class, 'store'])->name('coupons.store');
+        Route::get('/coupons/{coupon}/edit', [AdminCouponController::class, 'edit'])->name('coupons.edit');
+        Route::put('/coupons/{coupon}',      [AdminCouponController::class, 'update'])->name('coupons.update');
+        Route::delete('/coupons/{coupon}',   [AdminCouponController::class, 'destroy'])->name('coupons.destroy');
+
+        // Reports
+        Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
+
     });
 
     // Customer Review

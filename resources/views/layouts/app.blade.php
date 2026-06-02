@@ -140,6 +140,64 @@
         });
     </script>
 
+
+    {{-- ── Pusher realtime: product updates on frontend ── --}}
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script>
+    (function() {
+        try {
+            var pusher = new Pusher('{{ env("PUSHER_APP_KEY", "local") }}', {
+                cluster:           '{{ env("PUSHER_APP_CLUSTER", "mt1") }}',
+                wsHost:            '{{ env("PUSHER_HOST", "127.0.0.1") }}',
+                wsPort:            {{ env("PUSHER_PORT", 6001) }},
+                wssPort:           {{ env("PUSHER_PORT", 6001) }},
+                forceTLS:          false,
+                disableStats:      true,
+                enabledTransports: ['ws', 'wss'],
+            });
+
+            var ch = pusher.subscribe('products');
+
+            // New product added — prepend to product grid if visible
+            ch.bind('product.created', function(data) {
+                // Show toast notification to user
+                if (typeof showToast === 'function') {
+                    showToast('New product available: ' + data.name, 'info');
+                }
+                // If product-carousel or new-product-area is on this page, mark for reload
+                if ($('.product-carousel-active').length || $('.new-product-area').length) {
+                    // Soft reload: show a refresh banner
+                    if (!$('#new-product-banner').length) {
+                        $('body').prepend(
+                            '<div id="new-product-banner" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2ecc71;color:#fff;text-align:center;padding:10px;font-size:14px;cursor:pointer;" onclick="location.reload()">' +
+                            '✨ New products just added! <u>Click to refresh</u>' +
+                            '</div>'
+                        );
+                    }
+                }
+            });
+
+            // Product updated — update price/name on page if present
+            ch.bind('product.updated', function(data) {
+                var $card = $('[data-product-id="' + data.id + '"]');
+                if ($card.length && data.price) {
+                    $card.find('.hover-product-price').text('LKR ' + parseFloat(data.price).toLocaleString('en', {minimumFractionDigits: 2}));
+                }
+            });
+
+            // Product deleted — fade out if on page
+            ch.bind('product.deleted', function(data) {
+                if (data.id) {
+                    $('[data-product-id="' + data.id + '"]').fadeOut(400);
+                }
+            });
+
+        } catch(e) {
+            // Pusher not running — silent fail
+        }
+    })();
+    </script>
+
     @stack('scripts')
 </body>
 </html>
