@@ -7,7 +7,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Order;
 
-class OrderStatusUpdated implements ShouldBroadcast
+class OrderPlaced implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -20,15 +20,15 @@ class OrderStatusUpdated implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'order.status.updated';
+        return 'order.placed';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'id'     => $this->order->id,
-            'status' => $this->order->status,
-            'name'   => $this->order->name,
+            'id'    => $this->order->id,
+            'total' => $this->order->total,
+            'name'  => $this->order->name,
         ];
     }
 }

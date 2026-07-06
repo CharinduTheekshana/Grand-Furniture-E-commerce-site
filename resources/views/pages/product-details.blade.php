@@ -74,16 +74,16 @@
                                      photo shown on listing cards) — matches what the customer
                                      clicked to get here. Thumbnails after it are this
                                      product's color/gallery photos. --}}
-                                <li><a class="active" href="#view1" data-bs-toggle="tab">
+                                <li><a class="active" href="#view1">
                                     <img src="{{ $product->image_url }}" alt="{{ $product->name }}" />
                                 </a></li>
                                 @foreach($product->images->take(4) as $gi => $img)
-                                <li><a href="#gal{{ $gi+1 }}" data-bs-toggle="tab" data-color-id="{{ $img->color_id }}">
+                                <li><a href="#gal{{ $gi+1 }}" data-color-id="{{ $img->color_id }}">
                                     <img src="{{ $img->image_url }}" alt="{{ $product->name }}" />
                                 </a></li>
                                 @endforeach
                                 @foreach($thumbProducts as $ti => $tp)
-                                <li><a href="#view{{ $ti+2 }}" data-bs-toggle="tab">
+                                <li><a href="#view{{ $ti+2 }}">
                                     <img src="{{ $tp->image_url }}" alt="{{ $tp->name }}" />
                                 </a></li>
                                 @endforeach
@@ -629,6 +629,16 @@ $(document).on('click', '.star-rating-input i', function() {
     });
 });
 
+// Shared helper: activate one gallery pane + its thumbnail, deactivate the rest.
+// Used by both color-swatch clicks and thumbnail clicks so there's a single
+// source of truth — avoids the "two panes visible at once" bug.
+function showGalleryPane(paneId) {
+    $('.tab-content .tab-pane').removeClass('show active');
+    $('#' + paneId).addClass('show active');
+    $('.sinple-tab-menu a').removeClass('active');
+    $('.sinple-tab-menu a[href="#' + paneId + '"]').addClass('active');
+}
+
 // Color swatch selection
 function selectColor(el) {
     document.querySelectorAll('.color-swatch').forEach(function(e) {
@@ -645,26 +655,22 @@ function selectColor(el) {
     if (!colorId) return;
 
     // Find the gallery photo tied to this color — it may or may not have a
-    // visible thumbnail (the thumbnail strip is capped to a few photos),
-    // so switch the pane directly instead of relying on a thumbnail click.
-    var $pane = $('.tab-content .tab-pane[data-color-id="' + colorId + '"]');
-    if (!$pane.length) return;
+    // visible thumbnail (the thumbnail strip is capped to a few photos).
+    var pane = document.querySelector('.tab-content .tab-pane[data-color-id="' + colorId + '"]');
+    if (!pane) return;
 
-    $('.tab-content .tab-pane').removeClass('show active');
-    $pane.addClass('show active');
-
-    // Keep the thumbnail strip's highlighted state in sync, if that photo
-    // happens to also be one of the visible thumbnails.
-    $('.sinple-tab-menu a').removeClass('active');
-    $('.sinple-tab-menu a[data-color-id="' + colorId + '"]').addClass('active');
+    showGalleryPane(pane.id);
 }
 
-// Thumbnail click → swap main image + all product details
-$(document).on('click', '.sinple-tab-menu a', function() {
-    var tabId = $(this).attr('href'); // e.g. #view2
+// Thumbnail click → swap main image (+ product details, for "other product" thumbnails)
+$(document).on('click', '.sinple-tab-menu a', function(e) {
+    e.preventDefault();
+    var tabId = $(this).attr('href').replace('#', ''); // e.g. view2
+
+    showGalleryPane(tabId);
 
     // Find matching tab pane
-    var $pane = $(tabId);
+    var $pane = $('#' + tabId);
     if (!$pane.length) return;
 
     // Get product data stored on the pane
