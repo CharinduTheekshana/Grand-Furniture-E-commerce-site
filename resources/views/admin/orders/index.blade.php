@@ -145,7 +145,7 @@
                                 <td>{{ $order->phone ?? '—' }}</td>
                                 <td>{{ $order->items->count() }}</td>
                                 <td class="fw-medium">{{ number_format($order->total, 2) }}</td>
-                                <td><span class="badge {{ $cls }}">{{ ucfirst($order->status) }}</span></td>
+                                <td><span class="badge {{ $cls }} order-status-badge">{{ ucfirst($order->status) }}</span></td>
                                 <td>
                                     {{ $order->created_at->format('d M Y') }}<br>
                                     <small class="text-muted">{{ $order->created_at->format('h:i A') }}</small>
@@ -195,4 +195,5 @@ function filterStatus(val) {
     window.location.href = '{{ url("/admin-panel/orders") }}' + (val ? '?status=' + val : '');
 }
 </script>
+
 @endpush

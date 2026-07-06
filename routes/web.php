@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\ColorController as AdminColorController;
 
 Route::post('/admin/logout', function() {
     auth()->logout();
@@ -27,10 +28,6 @@ Route::post('/admin/logout', function() {
     request()->session()->regenerateToken();
     return redirect('/');
 })->name('admin.logout');
-
-// Language switcher route
-Route::get('/locale/{locale}', [App\Http\Controllers\LocaleController::class, 'switch'])
-    ->name('locale.switch');
 
 // Save intended action for guest users
 Route::post('/save-intended', function(\Illuminate\Http\Request $request) {
@@ -68,6 +65,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/orders',          [CheckoutController::class, 'orders'])->name('orders.index');
     Route::get('/orders/{order}',  [CheckoutController::class, 'show'])->name('orders.show');
+    Route::patch('/orders/{order}/received', [OrderController::class, 'markReceived'])->name('orders.received');
 
     Route::get('/reviews', [ProductController::class, 'myReviews'])->name('reviews.index');
 
@@ -110,9 +108,11 @@ Route::middleware(['auth'])
 
         // Contacts
         Route::get('/contacts',                   [AdminContactController::class, 'index'])->name('contacts.index');
+        Route::delete('/contacts/{contact}',       [AdminContactController::class, 'destroy'])->name('contacts.destroy');
     
         // Customers
         Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/{customer}', [AdminCustomerController::class, 'show'])->name('customers.show');
 
         // Orders
         Route::get('/orders',                  [AdminOrderController::class, 'index'])->name('orders.index');
@@ -134,6 +134,16 @@ Route::middleware(['auth'])
         Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 
+        // Colors
+        Route::get('/colors',              [AdminColorController::class, 'index'])->name('colors.index');
+        Route::post('/colors',             [AdminColorController::class, 'store'])->name('colors.store');
+        Route::get('/colors/{color}/edit', [AdminColorController::class, 'edit'])->name('colors.edit');
+        Route::put('/colors/{color}',      [AdminColorController::class, 'update'])->name('colors.update');
+        Route::delete('/colors/{color}',   [AdminColorController::class, 'destroy'])->name('colors.destroy');
+
+        // Admin global search
+        Route::get('/search', [App\Http\Controllers\Admin\DashboardController::class, 'search'])->name('search');
+
     });
 
     // Customer Review
@@ -147,6 +157,7 @@ Route::post('/payment/{order}', [PaymentController::class, 'process'])->name('pa
 
     // Order confirmation route (after successful payment)
 Route::post('/orders/{order}/confirm', [CheckoutController::class, 'confirm'])->name('orders.confirm');
+Route::get('/orders/{order}/invoice', [App\Http\Controllers\InvoiceController::class, 'download'])->name('orders.invoice');
 
     
 require __DIR__.'/auth.php';

@@ -29,13 +29,92 @@
                         </ul>
                     </div>
                 </div>
-                <div class="sideber-color mt-40"><h3 class="bedroom-side-title">Color</h3><ul><li><a href="#"></a></li><li class="bg-colo-3"><a href="#"></a></li><li class="bg-colo-4"><a href="#"></a></li><li class="bg-colo-5"><a href="#"></a></li><li class="bg-colo-6"><a href="#"></a></li></ul></div>
+
+                {{-- Color Filter --}}
+                <div class="sideber-color mt-40">
+                    <h3 class="bedroom-side-title">Color</h3>
+                    <ul>
+                        <li>
+                            <a href="{{ route('shop', array_merge(request()->except('color', 'page'), [])) }}"
+                               title="All"
+                               style="background:#f0f0f0;
+                                      border:2px solid {{ !request('color') ? '#333' : '#ddd' }};
+                                      display:inline-block;width:22px;height:22px;border-radius:50%;">
+                            </a>
+                        </li>
+                        @foreach($allColors as $color)
+                        <li>
+                            <a href="{{ route('shop', array_merge(request()->except('color', 'page'), ['color' => $color->id])) }}"
+                               title="{{ $color->name }}"
+                               style="background:{{ $color->color_code ?? '#ccc' }};
+                                      border:2px solid {{ request('color') == $color->id ? '#333' : 'transparent' }};
+                                      display:inline-block;width:22px;height:22px;border-radius:50%;">
+                            </a>
+                        </li>
+                        @endforeach
+                    </ul>
+                    @if(request('color'))
+                    <a href="{{ route('shop', request()->except('color')) }}"
+                       style="font-size:11px;color:#999;margin-top:6px;display:inline-block;">
+                        ✕ Clear filter
+                    </a>
+                    @endif
+                </div>
+
+                {{-- Manufacturer / Brand Filter --}}
+                <div class="category-area-start">
+                    <div class="caregory manufacturer mt-40">
+                        <h3 class="bedroom-side-title">Manufacturer</h3>
+                        <ul>
+                            @php
+                                $brands = \App\Models\Product::where('is_active', true)
+                                    ->whereNotNull('brand')->where('brand','!=','')
+                                    ->selectRaw('brand, COUNT(*) as count')
+                                    ->groupBy('brand')->orderBy('brand')->get();
+                            @endphp
+                            @forelse($brands as $b)
+                            <li>
+                                <a href="{{ route('shop', array_merge(request()->except('brand','page'), ['brand' => $b->brand])) }}"
+                                   class="{{ request('brand') == $b->brand ? 'active' : '' }}">
+                                    {{ $b->brand }} <span>({{ $b->count }})</span>
+                                </a>
+                            </li>
+                            @empty
+                            <li><span style="font-size:13px;color:#999;">No brands added yet</span></li>
+                            @endforelse
+                        </ul>
+                        @if(request('brand'))
+                        <a href="{{ route('shop', request()->except('brand')) }}"
+                           style="font-size:11px;color:#999;margin-top:6px;display:inline-block;">
+                            ✕ Clear
+                        </a>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Sidebar Banner --}}
+                <div class="sideber-ads mt-40 mb-30">
+                    <div class="sideber-ads-img">
+                        <a href="{{ route('shop') }}">
+                            <img src="{{ asset('assets/images/banner/13.jpg') }}" alt="Sale" style="width:100%;border-radius:4px;" />
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Compare Products --}}
+                <div class="bedroom-sideber mt-40">
+                    <div class="bedroom-title text-uppercase"><h4>Compare Products</h4></div>
+                    <p>You have no items to compare.</p>
+                </div>
+
+                {{-- My Wish List --}}
                 <div class="bedroom-sideber mt-40"><div class="bedroom-title text-uppercase"><h4>My Wish List</h4></div>
                     @auth
                     @if($wishlistCount > 0)<p>You have <strong>{{ $wishlistCount }}</strong> item(s). <a href="{{ route('wishlist.index') }}">View</a></p>@else<p>You have no items in your wish list.</p>@endif
                     @else<p>You have no items in your wish list.</p>@endauth
                 </div>
             </div>
+
             <div class="col-md-9">
                 <div class="caregory-products-area">
                     <div class="row">
@@ -54,44 +133,124 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="tab-content">
+
+                        {{-- Grid View --}}
                         <div class="tab-pane show active" id="viewed">
                             <div class="row">
                                 @forelse($products as $product)
                                 <div class="col-xl-3 col-lg-4 col-md-6">
                                     <div class="single-new-product mt-40 category-new-product">
-                                        <div class="product-img">
-                                            <a href="{{ route('product.show',$product->slug) }}"><img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}" /></a>
-                                            @if($product->old_price) @php $d=round(($product->old_price-$product->price)/$product->old_price*100); @endphp @if($d>0)<span class="new">{{ $d }}%</span>@endif @endif
+                                        <div class="product-img" style="position:relative;">
+
+                                            {{-- Out of Stock Badge --}}
+                                            @if((int)$product->stock <= 0)
+                                                <div class="out-of-stock-badge">
+                                                    Out of Stock
+                                                </div>
+                                            @endif
+                                            @include('components.offer-badge', ['product' => $product])
+
+                                            <a href="{{ route('product.show',$product->slug) }}">
+                                                <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}" />
+                                            </a>
+
+                                            @if($product->stock > 0 && $product->old_price && !$product->is_offer_active)
+                                                @php $d = round(($product->old_price - $product->price) / $product->old_price * 100); @endphp
+                                                @if($d > 0)<span class="new">{{ $d }}%</span>@endif
+                                            @endif
+
                                             <div class="new-product-action">
-                                                <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
-                                                <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
-                                                <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
+                                                <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}">
+                                                    <span class="lnr lnr-sync"></span>
+                                                </a>
+                                                @if($product->stock > 0)
+                                                <a href="#" class="add-to-cart" data-id="{{ $product->id }}">
+                                                    <span class="lnr lnr-cart cart_pad"></span>Add to Cart
+                                                </a>
+                                                @else
+                                                <span style="color:#999;font-size:12px;padding:0 8px;cursor:default;">
+                                                    <span class="lnr lnr-cart cart_pad"></span>Out of Stock
+                                                </span>
+                                                @endif
+                                                <a href="#" class="wishlist-btn" data-id="{{ $product->id }}">
+                                                    <span class="lnr lnr-heart"></span>
+                                                </a>
                                             </div>
                                         </div>
                                         <div class="product-content text-center">
                                             <a href="{{ route('product.show',$product->slug) }}"><h3>{{ $product->name }}</h3></a>
-                                            <div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div>
+                                            <div class="product-price-star">
+                                                <i class="fa fa-star"></i><i class="fa fa-star"></i>
+                                                <i class="fa fa-star"></i><i class="fa fa-star-o"></i>
+                                                <i class="fa fa-star-o"></i>
+                                            </div>
                                             <div class="price">
-                                                @if($product->old_price)<h4>LKR {{ number_format($product->price,2) }}</h4><h3 class="del-price"><del>LKR {{ number_format($product->old_price,2) }}</del></h3>
-                                                @else<h4>LKR {{ number_format($product->price,2) }}</h4>@endif
+                                                @if($product->old_price)
+                                                    <h4>LKR {{ number_format($product->price,2) }}</h4>
+                                                    <h3 class="del-price"><del>LKR {{ number_format($product->old_price,2) }}</del></h3>
+                                                @else
+                                                    <h4>LKR {{ number_format($product->price,2) }}</h4>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 @empty
-                                <div class="col-12 text-center py-5"><h4>No products found.</h4><a href="{{ route('shop') }}" class="btn btn-default login-btn mt-3">Clear Filters</a></div>
+                                <div class="col-12 text-center py-5">
+                                    <h4>No products found.</h4>
+                                    <a href="{{ route('shop') }}" class="btn btn-default login-btn mt-3">Clear Filters</a>
+                                </div>
                                 @endforelse
                             </div>
                         </div>
+
+                        {{-- List View --}}
                         <div class="tab-pane" id="random">
                             @forelse($products as $product)
                             <div class="row mt-30" style="border-bottom:1px solid #eee;padding-bottom:20px;margin-bottom:20px;">
-                                <div class="col-md-3"><a href="{{ route('product.show',$product->slug) }}"><img src="{{ $product->image_url }}" class="img-fluid" alt="{{ $product->name }}" /></a></div>
-                                <div class="col-md-9"><a href="{{ route('product.show',$product->slug) }}"><h3>{{ $product->name }}</h3></a><div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div><h4 class="mt-2">LKR {{ number_format($product->price,2) }}</h4><p class="mt-2">{{ Str::limit($product->description,100) }}</p><a href="#" class="add-to-cart btn btn-default login-btn mt-2" data-id="{{ $product->id }}" style="font-size:13px;padding:6px 16px;"><span class="lnr lnr-cart"></span> Add to Cart</a></div>
+                                <div class="col-md-3" style="position:relative;">
+                                    @if($product->stock == 0)
+                                    <div style="position:absolute;top:8px;left:20px;z-index:10;
+                                                background:#e74c3c;color:#fff;padding:3px 8px;
+                                                border-radius:4px;font-size:11px;font-weight:600;">
+                                        Out of Stock
+                                    </div>
+                                    @endif
+                                    <a href="{{ route('product.show',$product->slug) }}">
+                                        <img src="{{ $product->image_url }}" class="img-fluid" alt="{{ $product->name }}" />
+                                    </a>
+                                </div>
+                                <div class="col-md-9">
+                                    <a href="{{ route('product.show',$product->slug) }}"><h3>{{ $product->name }}</h3></a>
+                                    <div class="product-price-star">
+                                        <i class="fa fa-star"></i><i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i><i class="fa fa-star-o"></i>
+                                        <i class="fa fa-star-o"></i>
+                                    </div>
+                                    <h4 class="mt-2">LKR {{ number_format($product->price,2) }}</h4>
+                                    <p class="mt-2">{{ Str::limit($product->description,100) }}</p>
+                                    @if($product->stock > 0)
+                                    <a href="#" class="add-to-cart btn btn-default login-btn mt-2"
+                                       data-id="{{ $product->id }}"
+                                       style="font-size:13px;padding:6px 16px;">
+                                        <span class="lnr lnr-cart"></span> Add to Cart
+                                    </a>
+                                    @else
+                                    <span style="display:inline-block;background:#fef2f2;border:1px solid #fca5a5;
+                                                 color:#e74c3c;padding:6px 16px;border-radius:4px;
+                                                 font-size:13px;font-weight:600;margin-top:8px;">
+                                        Out of Stock
+                                    </span>
+                                    @endif
+                                </div>
                             </div>
-                            @empty<div class="text-center py-5"><h4>No products found.</h4></div>@endforelse
+                            @empty
+                            <div class="text-center py-5"><h4>No products found.</h4></div>
+                            @endforelse
                         </div>
+
                     </div>
                     <div class="text-center mt-40">{{ $products->withQueryString()->links() }}</div>
                 </div>
@@ -100,11 +259,22 @@
     </div>
 </div>
 @endsection
+
 @push('scripts')
 <script>
 $(function(){
     var min={{ request('min_price',$minPrice) }},max={{ request('max_price',$maxPrice) }};
-    $("#slider-range").slider({range:true,min:{{ $minPrice }},max:{{ $maxPrice }},values:[min,max],slide:function(e,ui){$("#amount").val("LKR "+ui.values[0].toLocaleString()+" - LKR "+ui.values[1].toLocaleString());$("#min_price_input").val(ui.values[0]);$("#max_price_input").val(ui.values[1]);}});
+    $("#slider-range").slider({
+        range:true,
+        min:{{ $minPrice }},
+        max:{{ $maxPrice }},
+        values:[min,max],
+        slide:function(e,ui){
+            $("#amount").val("LKR "+ui.values[0].toLocaleString()+" - LKR "+ui.values[1].toLocaleString());
+            $("#min_price_input").val(ui.values[0]);
+            $("#max_price_input").val(ui.values[1]);
+        }
+    });
     $("#amount").val("LKR "+$("#slider-range").slider("values",0).toLocaleString()+" - LKR "+$("#slider-range").slider("values",1).toLocaleString());
 });
 </script>

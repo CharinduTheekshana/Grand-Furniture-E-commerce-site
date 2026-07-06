@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/plugins/tabler-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/main.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/plugins/swiper.min.css') }}">
+    {{-- Remix Icons CDN fallback --}}
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
     <style>
         .rt-toast {
@@ -30,6 +32,13 @@
         .rt-toast.info    { background: #3498db; }
         .rt-toast.warning { background: #f39c12; }
         .rt-toast.error   { background: #e74c3c; }
+
+        @font-face {
+            font-family: 'remixicon';
+            src: url('https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.woff2') format('woff2');
+            font-display: swap;
+        }
+
     </style>
 
     @stack('styles')
@@ -177,6 +186,82 @@
             });
 
         } catch(e) {}
+
+
+        // Admin global search
+        (function() {
+            var input   = document.getElementById('admin-global-search');
+            var results = document.getElementById('admin-search-results');
+            if (!input) return;
+
+            var timer;
+
+            input.addEventListener('input', function() {
+                clearTimeout(timer);
+                var q = this.value.trim();
+
+                if (q.length < 2) {
+                    results.style.display = 'none';
+                    return;
+                }
+
+                timer = setTimeout(function() {
+                    fetch('/admin-panel/search?q=' + encodeURIComponent(q), {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        results.innerHTML = '';
+
+                        if (data.products && data.products.length) {
+                            results.innerHTML += '<div style="padding:8px 12px;font-size:11px;font-weight:700;color:#999;text-transform:uppercase;border-bottom:1px solid #f0f0f0;">Products</div>';
+                            data.products.forEach(function(p) {
+                                results.innerHTML += '<a href="/admin-panel/products/' + p.id + '/edit" style="display:flex;align-items:center;gap:10px;padding:10px 12px;text-decoration:none;color:#333;border-bottom:1px solid #f9f9f9;" onmouseover="this.style.background=\'#f9f9f9\'" onmouseout="this.style.background=\'\'">'+
+                                    '<i class="ri-box-3-line" style="color:#4F46E5;"></i>'+
+                                    '<div><div style="font-size:13px;font-weight:500;">' + p.name + '</div>'+
+                                    '<div style="font-size:11px;color:#999;">LKR ' + p.price + ' &bull; Stock: ' + p.stock + '</div></div></a>';
+                            });
+                        }
+
+                        if (data.orders && data.orders.length) {
+                            results.innerHTML += '<div style="padding:8px 12px;font-size:11px;font-weight:700;color:#999;text-transform:uppercase;border-bottom:1px solid #f0f0f0;">Orders</div>';
+                            data.orders.forEach(function(o) {
+                                results.innerHTML += '<a href="/admin-panel/orders/' + o.id + '" style="display:flex;align-items:center;gap:10px;padding:10px 12px;text-decoration:none;color:#333;border-bottom:1px solid #f9f9f9;" onmouseover="this.style.background=\'#f9f9f9\'" onmouseout="this.style.background=\'\'">'+
+                                    '<i class="ri-shopping-bag-line" style="color:#27ae60;"></i>'+
+                                    '<div><div style="font-size:13px;font-weight:500;">#GF-' + String(o.id).padStart(5,'0') + ' &mdash; ' + o.name + '</div>'+
+                                    '<div style="font-size:11px;color:#999;">LKR ' + o.total + ' &bull; ' + o.status + '</div></div></a>';
+                            });
+                        }
+
+                        if ((!data.products || !data.products.length) && (!data.orders || !data.orders.length)) {
+                            results.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:13px;">No results found for "' + q + '"</div>';
+                        }
+
+                        results.style.display = 'block';
+                    });
+                }, 300);
+            });
+
+            // Close on outside click
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !results.contains(e.target)) {
+                    results.style.display = 'none';
+                }
+            });
+
+            // Keyboard — Enter ලෙස first result navigate
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    var first = results.querySelector('a');
+                    if (first) window.location.href = first.href;
+                }
+                if (e.key === 'Escape') {
+                    results.style.display = 'none';
+                    input.blur();
+                }
+            });
+        })();
+
     </script>
 
     @stack('scripts')

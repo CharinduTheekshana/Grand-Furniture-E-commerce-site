@@ -78,44 +78,44 @@
             <div class="custom-col">
                 <div class="single-new-product" data-product-id="{{ $product->id }}">
                     <div class="product-img">
+                        @if((int)$product->stock <= 0)
+                            <div class="out-of-stock-badge">Out of Stock</div>
+                        @endif
+                        {{-- Offer Badge --}}
+                        @include('components.offer-badge', ['product' => $product])
+
+
                         <a href="{{ route('product.show', $product->slug) }}">
                             {{-- first_img: current product --}}
-                            <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}"
-                                data-name="{{ $product->name }}"
-                                data-price="{{ number_format($product->price, 2) }}"
-data-old-price="{{ $product->old_price ? number_format($product->old_price, 2) : '' }}"
-                                data-url="{{ route('product.show', $product->slug) }}" />
-                            {{-- seceond_img: another product in same category (hover effect) --}}
-                            @php $second = $allProducts->where('category_id', $product->category_id)->where('id', '!=', $product->id)->shuffle()->first(); if(!$second) $second = $allProducts->where('id', '!=', $product->id)->shuffle()->first(); @endphp
-                            <img src="{{ $second ? $second->image_url : $product->image_url }}" class="seceond_img" alt=""
-                                data-name="{{ $second ? $second->name : $product->name }}"
-                                data-price="{{ $second ? number_format($second->price, 2) : number_format($product->price, 2) }}"
-data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_price, 2) : '') : ($product->old_price ? number_format($product->old_price, 2) : '') }}"
-                                data-url="{{ $second ? route('product.show', $second->slug) : route('product.show', $product->slug) }}" />
+                            <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}" />
                         </a>
                         {{-- Sale badge --}}
-                        @if($product->old_price)
+                        @if($product->stock > 0 && $product->old_price && !$product->is_offer_active)
                             @php $disc = round((($product->old_price - $product->price) / $product->old_price) * 100); @endphp
                             @if($disc > 0)<span class="new">{{ $disc }}%</span>@endif
                         @endif
                         <div class="new-product-action">
                             <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
+                            @if($product->stock > 0)
                             <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
+                            @else
+                            <span style="color:#ccc;font-size:12px;padding:0 8px;cursor:default;"><span class="lnr lnr-cart cart_pad"></span>Out of Stock</span>
+                            @endif
                             <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                         </div>
                     </div>
                     <div class="product-content text-center">
-                        <a href="{{ route('product.show', $product->slug) }}" class="hover-product-url"><h3 class="hover-product-name">{{ $product->name }}</h3></a>
+                        <a href="{{ route('product.show', $product->slug) }}"><h3>{{ $product->name }}</h3></a>
                         <div class="product-price-star">
                             <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
                             <i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>
                         </div>
                         <div class="price">
-                            @if($product->old_price)
-                                <h4 class="hover-product-price">LKR {{ number_format($product->price, 2) }}</h4>
-                                <h3 class="del-price hover-product-old-price"><del>LKR {{ number_format($product->old_price, 2) }}</del></h3>
+                            @if($product->stock > 0 && $product->old_price && !$product->is_offer_active)
+                                <h4>LKR {{ number_format($product->price, 2) }}</h4>
+                                <h3 class="del-price"><del>LKR {{ number_format($product->old_price, 2) }}</del></h3>
                             @else
-                                <h4 class="hover-product-price">LKR {{ number_format($product->price, 2) }}</h4>
+                                <h4>LKR {{ number_format($product->price, 2) }}</h4>
                             @endif
                         </div>
                     </div>
@@ -129,7 +129,6 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                     <div class="product-img">
                         <a href="{{ route('shop') }}">
                             <img src="{{ asset('assets/images/product/'.$i.'.jpg') }}" class="first_img" alt="Product" />
-                            <img src="{{ asset('assets/images/product/'.($i+1).'.jpg') }}" class="seceond_img" alt="" />
                         </a>
                     </div>
                     <div class="product-content text-center">
@@ -178,26 +177,20 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
             <div class="custom-col">
                 <div class="single-new-product" data-product-id="{{ $product->id }}">
                     <div class="product-img">
+                        @if((int)$product->stock <= 0)
+                            <div class="out-of-stock-badge">Out of Stock</div>
+                        @endif
+                        @include('components.offer-badge', ['product' => $product])
                         <a href="{{ route('product.show', $product->slug) }}">
-                            <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}"
-    data-name="{{ $product->name }}"
-    data-price="{{ number_format($product->price, 2) }}"
-data-old-price="{{ $product->old_price ? number_format($product->old_price, 2) : '' }}"
-    data-url="{{ route('product.show', $product->slug) }}" />
-                            @php $second = $allProducts->where('category_id', $product->category_id)->where('id', '!=', $product->id)->shuffle()->first(); if(!$second) $second = $allProducts->where('id', '!=', $product->id)->shuffle()->first(); @endphp
-                            <img src="{{ $second ? $second->image_url : $product->image_url }}" class="seceond_img" alt=""
-    data-name="{{ $second ? $second->name : $product->name }}"
-    data-price="{{ $second ? number_format($second->price, 2) : number_format($product->price, 2) }}"
-data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_price, 2) : '') : ($product->old_price ? number_format($product->old_price, 2) : '') }}"
-    data-url="{{ $second ? route('product.show', $second->slug) : route('product.show', $product->slug) }}" />
+                            <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}" />
                         </a>
                     </div>
                     <div class="product-content text-center">
-                        <a href="{{ route('product.show', $product->slug) }}" class="hover-product-url"><h3 class="hover-product-name">{{ $product->name }}</h3></a>
+                        <a href="{{ route('product.show', $product->slug) }}"><h3>{{ $product->name }}</h3></a>
                         <div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div>
                         <div class="price">
-                            <h4 class="hover-product-price">LKR {{ number_format($product->price, 2) }}</h4>
-                            @if($product->old_price)<h3 class="del-price hover-product-old-price"><del>LKR {{ number_format($product->old_price, 2) }}</del></h3>@endif
+                            <h4>LKR {{ number_format($product->price, 2) }}</h4>
+                            @if($product->stock > 0 && $product->old_price && !$product->is_offer_active)<h3 class="del-price"><del>LKR {{ number_format($product->old_price, 2) }}</del></h3>@endif
                         </div>
                     </div>
                     <div class="product-icon-wrapper">
@@ -205,7 +198,11 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                             <ul>
                                 <li><a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a></li>
                                 <li><a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a></li>
+                                @if($product->stock > 0)
                                 <li><a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart"></span></a></li>
+                                @else
+                                <li><span title="Out of Stock" style="opacity:0.4;cursor:default;"><span class="lnr lnr-cart"></span></span></li>
+                                @endif
                             </ul>
                         </div>
                     </div>
@@ -218,7 +215,6 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                     <div class="product-img">
                         <a href="{{ route('shop') }}">
                             <img src="{{ asset('assets/images/product/'.$i.'.jpg') }}" class="first_img" alt="" />
-                            <img src="{{ asset('assets/images/product/'.($i+1).'.jpg') }}" class="seceond_img" alt="" />
                         </a>
                     </div>
                     <div class="product-content text-center">
@@ -264,39 +260,38 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                     <div class="custom-col">
                         <div class="single-new-product">
                             <div class="product-img">
+                                @if((int)$product->stock <= 0)
+                                    <div class="out-of-stock-badge">Out of Stock</div>
+                                @endif
+                                @include('components.offer-badge', ['product' => $product])
                                 <a href="{{ route('product.show', $product->slug) }}">
-                                    <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}"
-    data-name="{{ $product->name }}"
-    data-price="{{ number_format($product->price, 2) }}"
-data-old-price="{{ $product->old_price ? number_format($product->old_price, 2) : '' }}"
-    data-url="{{ route('product.show', $product->slug) }}" />
-                                    @php $second = $allProducts->where('category_id', $product->category_id)->where('id', '!=', $product->id)->shuffle()->first(); if(!$second) $second = $allProducts->where('id', '!=', $product->id)->shuffle()->first(); @endphp
-                                    <img src="{{ $second ? $second->image_url : $product->image_url }}" class="seceond_img" alt=""
-    data-name="{{ $second ? $second->name : $product->name }}"
-    data-price="{{ $second ? number_format($second->price, 2) : number_format($product->price, 2) }}"
-data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_price, 2) : '') : ($product->old_price ? number_format($product->old_price, 2) : '') }}"
-    data-url="{{ $second ? route('product.show', $second->slug) : route('product.show', $product->slug) }}" />
+                                    <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}" />
                                 </a>
                                 <div class="new-product-action feature-action">
                                     <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
+                                    @if($product->stock > 0)
                                     <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
+                                    @else
+                                    <span style="color:#ccc;font-size:12px;cursor:default;"><span class="lnr lnr-cart cart_pad"></span>Out of Stock</span>
+                                    @endif
                                     <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                 </div>
                             </div>
                             <div class="product-content text-center">
-                                <a href="{{ route('product.show', $product->slug) }}" class="hover-product-url"><h3 class="hover-product-name">{{ $product->name }}</h3></a>
+                                <a href="{{ route('product.show', $product->slug) }}"><h3>{{ $product->name }}</h3></a>
                                 <div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div>
-                                <h4 class="hover-product-price">LKR {{ number_format($product->price, 2) }}</h4>
+                                <h4>LKR {{ number_format($product->price, 2) }}</h4>
                             </div>
                         </div>
                     </div>
                     @empty
                     @for($i=1;$i<=2;$i++)
-                    <div class="custom-col"><div class="single-new-product"><div class="product-img"><a href="{{ route('shop') }}"><img src="{{ asset('assets/images/product/'.$i.'.jpg') }}" class="first_img" alt="" /><img src="{{ asset('assets/images/product/'.($i+1).'.jpg') }}" class="seceond_img" alt="" /></a><div class="new-product-action feature-action"><a href="#"><span class="lnr lnr-sync"></span></a><a href="{{ route('shop') }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a><a href="#"><span class="lnr lnr-heart"></span></a></div></div><div class="product-content text-center"><a href="{{ route('shop') }}"><h3>Beaumont Summit</h3></a><div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div><h4>LKR 4,400.00</h4></div></div></div>
+                    <div class="custom-col"><div class="single-new-product"><div class="product-img"><a href="{{ route('shop') }}"><img src="{{ asset('assets/images/product/'.$i.'.jpg') }}" class="first_img" alt="" /></a><div class="new-product-action feature-action"><a href="#"><span class="lnr lnr-sync"></span></a><a href="{{ route('shop') }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a><a href="#"><span class="lnr lnr-heart"></span></a></div></div><div class="product-content text-center"><a href="{{ route('shop') }}"><h3>Beaumont Summit</h3></a><div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div><h4>LKR 4,400.00</h4></div></div></div>
                     @endfor
                     @endforelse
                 </div>
             </div>
+
             {{-- Sale --}}
             <div class="col-md-6">
                 <div class="section-title"><h2>sale products</h2><p>Browse the collection of our on sale products.</p></div>
@@ -305,35 +300,33 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                     <div class="custom-col">
                         <div class="single-new-product">
                             <div class="product-img">
+                                @if((int)$product->stock <= 0)
+                                    <div class="out-of-stock-badge">Out of Stock</div>
+                                @endif
+                                @include('components.offer-badge', ['product' => $product])
                                 <a href="{{ route('product.show', $product->slug) }}">
-                                    <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}"
-    data-name="{{ $product->name }}"
-    data-price="{{ number_format($product->price, 2) }}"
-data-old-price="{{ $product->old_price ? number_format($product->old_price, 2) : '' }}"
-    data-url="{{ route('product.show', $product->slug) }}" />
-                                    @php $second = $allProducts->where('category_id', $product->category_id)->where('id', '!=', $product->id)->shuffle()->first(); if(!$second) $second = $allProducts->where('id', '!=', $product->id)->shuffle()->first(); @endphp
-                                    <img src="{{ $second ? $second->image_url : $product->image_url }}" class="seceond_img" alt=""
-    data-name="{{ $second ? $second->name : $product->name }}"
-    data-price="{{ $second ? number_format($second->price, 2) : number_format($product->price, 2) }}"
-data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_price, 2) : '') : ($product->old_price ? number_format($product->old_price, 2) : '') }}"
-    data-url="{{ $second ? route('product.show', $second->slug) : route('product.show', $product->slug) }}" />
+                                    <img src="{{ $product->image_url }}" class="first_img" alt="{{ $product->name }}" />
                                 </a>
                                 <div class="new-product-action feature-action">
                                     <a href="#" class="home-checkout-btn" data-id="{{ $product->id }}"><span class="lnr lnr-sync"></span></a>
+                                    @if($product->stock > 0)
                                     <a href="#" class="add-to-cart" data-id="{{ $product->id }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a>
+                                    @else
+                                    <span style="color:#ccc;font-size:12px;cursor:default;"><span class="lnr lnr-cart cart_pad"></span>Out of Stock</span>
+                                    @endif
                                     <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                 </div>
                             </div>
                             <div class="product-content text-center">
-                                <a href="{{ route('product.show', $product->slug) }}" class="hover-product-url"><h3 class="hover-product-name">{{ $product->name }}</h3></a>
+                                <a href="{{ route('product.show', $product->slug) }}"><h3>{{ $product->name }}</h3></a>
                                 <div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div>
-                                <h4 class="hover-product-price">LKR {{ number_format($product->price, 2) }}</h4>
+                                <h4>LKR {{ number_format($product->price, 2) }}</h4>
                             </div>
                         </div>
                     </div>
                     @empty
                     @for($i=5;$i<=6;$i++)
-                    <div class="custom-col"><div class="single-new-product"><div class="product-img"><a href="{{ route('shop') }}"><img src="{{ asset('assets/images/product/'.$i.'.jpg') }}" class="first_img" alt="" /><img src="{{ asset('assets/images/product/'.($i+1).'.jpg') }}" class="seceond_img" alt="" /></a><div class="new-product-action feature-action"><a href="#"><span class="lnr lnr-sync"></span></a><a href="{{ route('shop') }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a><a href="#"><span class="lnr lnr-heart"></span></a></div></div><div class="product-content text-center"><a href="{{ route('shop') }}"><h3>Beaumont Summit</h3></a><div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div><h4>LKR 4,400.00</h4></div></div></div>
+                    <div class="custom-col"><div class="single-new-product"><div class="product-img"><a href="{{ route('shop') }}"><img src="{{ asset('assets/images/product/'.$i.'.jpg') }}" class="first_img" alt="" /></a><div class="new-product-action feature-action"><a href="#"><span class="lnr lnr-sync"></span></a><a href="{{ route('shop') }}"><span class="lnr lnr-cart cart_pad"></span>Add to Cart</a><a href="#"><span class="lnr lnr-heart"></span></a></div></div><div class="product-content text-center"><a href="{{ route('shop') }}"><h3>Beaumont Summit</h3></a><div class="product-price-star"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i></div><h4>LKR 4,400.00</h4></div></div></div>
                     @endfor
                     @endforelse
                 </div>
@@ -341,6 +334,7 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
         </div>
     </div>
 </div>
+
 
 {{-- ═══ LATEST BLOGS ═══ --}}
 <div class="blog-area pb-80 dotted-style3">
@@ -355,7 +349,7 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
                 <div class="single-blog">
                     <div class="blog-img">
                         <a href="{{ route('blog.index', $blog->slug) }}">
-                            <img src="{{ $blog->image ? asset('storage/'.$blog->image) : asset('assets/images/blog/1.jpg') }}" alt="{{ $blog->title }}" />
+                            <img src="{{ $blog->image ? asset('uploads/blogs/'.$blog->image) : asset('assets/images/blog/1.jpg') }}" alt="{{ $blog->title }}" />
                         </a>
                     </div>
                     <div class="blog-info">
@@ -404,47 +398,7 @@ data-old-price="{{ $second ? ($second->old_price ? number_format($second->old_pr
 
 @push('scripts')
 <script>
-$(document).on('mouseenter', '.single-new-product', function() {
-    var $card     = $(this);
-    var $second   = $card.find('.seceond_img');
-    var secName   = $second.data('name');
-    var secPrice  = $second.data('price');
-    var secOld    = $second.data('old-price');
-    var secUrl    = $second.data('url');
 
-    if (secName && secName !== $card.find('.hover-product-name').text()) {
-        $card.find('.hover-product-name').text(secName);
-        $card.find('.hover-product-price').text('LKR ' + secPrice);
-        $card.find('.hover-product-url').attr('href', secUrl);
-
-        if (secOld) {
-            $card.find('.hover-product-old-price').html('<del>LKR ' + secOld + '</del>').show();
-        } else {
-            $card.find('.hover-product-old-price').hide();
-        }
-    }
-});
-
-$(document).on('mouseleave', '.single-new-product', function() {
-    var $card      = $(this);
-    var $first     = $card.find('.first_img');
-    var origName   = $first.data('name');
-    var origPrice  = $first.data('price');
-    var origOld    = $first.data('old-price');
-    var origUrl    = $first.data('url');
-
-    if (origName) {
-        $card.find('.hover-product-name').text(origName);
-        $card.find('.hover-product-price').text('LKR ' + origPrice);
-        $card.find('.hover-product-url').attr('href', origUrl);
-
-        if (origOld) {
-            $card.find('.hover-product-old-price').html('<del>LKR ' + origOld + '</del>').show();
-        } else {
-            $card.find('.hover-product-old-price').hide();
-        }
-    }
-});
 </script>
 @endpush
 

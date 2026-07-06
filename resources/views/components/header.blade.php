@@ -4,19 +4,6 @@
             <div class="row">
                 <div class="col-xl-9 col-md-8">
 
-                    {{-- Language --}}
-<button class="btn btn-default header-left-menu dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-    {{ app()->getLocale() === 'ta' ? 'தமிழ்' : 'English' }} <i class="fa fa-angle-down"></i>
-</button>
-<ul class="dropdown-menu">
-    @if(app()->getLocale() !== 'en')
-    <li><a href="{{ route('locale.switch', 'en') }}">English</a></li>
-    @endif
-    @if(app()->getLocale() !== 'ta')
-    <li><a href="{{ route('locale.switch', 'ta') }}">தமிழ்</a></li>
-    @endif
-</ul>
-
                     {{-- My Account — Grand exact structure --}}
                     <div class="header-top-left">
                         <ul>

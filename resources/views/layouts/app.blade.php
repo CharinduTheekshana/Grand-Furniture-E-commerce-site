@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}">
     <script src="{{ asset('assets/js/vendor/modernizr-2.8.3.min.js') }}"></script>
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('assets/css/offers.css') }}">
 </head>
 <body>
     <x-header />
@@ -199,5 +200,7 @@
     </script>
 
     @stack('scripts')
+    <script src="{{ asset('assets/js/offer-countdown.js') }}"></script>
+    @include('components.coupon-widget')
 </body>
 </html>

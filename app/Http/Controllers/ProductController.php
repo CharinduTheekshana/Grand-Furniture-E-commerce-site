@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\Request;
@@ -8,18 +9,28 @@ class ProductController extends Controller
 {
     public function show($slug)
     {
-        $product         = Product::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $product        =   Product::with(['colors'])
+                                ->where('slug', $slug)
+                                ->where('is_active', true)
+                                ->firstOrFail();
         $relatedProducts = Product::where('category_id', $product->category_id)
                                 ->where('id', '!=', $product->id)
-                                ->where('is_active', true)->take(4)->get();
+                                ->where('is_active', true)->where('is_active', true)
+                                ->where('stock', '>', 0)
+                                ->take(4)
+                                ->get();
         $reviews         = Review::with('user')->where('product_id', $product->id)->latest()->get();
         $avgRating       = $reviews->count() > 0
                             ? (int) round($reviews->avg(fn($r) => ($r->quality + $r->price + $r->value) / 3))
                             : 3;
 
-        // Bestseller sidebar data
-        $bsPool  = Product::where('is_active', true)->where('id', '!=', $product->id)
-                        ->inRandomOrder()->get()->unique('id')->values();
+        $bsPool = Product::where('is_active', true)
+                                ->where('id', '!=', $product->id)
+                                ->where('stock', '>', 0)
+                                ->inRandomOrder()
+                                ->get()
+                                ->unique('id')
+                                ->values();
         $bsPairs = [];
         $bsCount = $bsPool->count();
         for ($i = 0; $i < min(6, $bsCount); $i++) {
@@ -36,23 +47,24 @@ class ProductController extends Controller
             ];
         }
 
-        // Thumbnail products
-        $thumbProducts = Product::where('is_active', true)
-        ->where('id', '!=', $product->id)
-        ->inRandomOrder()->take(4)->get()
-        ->each(function($p) {
-            $p->avgRating = (int) round(
-                Review::where('product_id', $p->id)
-                    ->avg(\DB::raw('(quality+price+value)/3')) ?? 3
-            );
-        });
+            $thumbProducts = Product::where('is_active', true)
+                ->where('id', '!=', $product->id)
+                ->where('stock', '>', 0)
+                ->inRandomOrder()
+                ->take(4)
+                ->get()
+                ->each(function($p) {
+                    $p->avgRating = (int) round(
+                        Review::where('product_id', $p->id)
+                            ->avg(\DB::raw('(quality+price+value)/3')) ?? 3
+                    );
+                });
 
         return view('pages.product-details', compact(
             'product', 'relatedProducts', 'reviews', 'avgRating', 'bsPairs', 'thumbProducts'
         ));
     }
 
-    //Review form submit, validate, DB save
     public function review(Request $request, $slug)
     {
         $product = Product::where('slug', $slug)->firstOrFail();
@@ -81,7 +93,6 @@ class ProductController extends Controller
             ->with('review_success', 'Your review has been submitted successfully!');
     }
 
-    // User's own reviews page
     public function myReviews()
     {
         $reviews = Review::with('product')

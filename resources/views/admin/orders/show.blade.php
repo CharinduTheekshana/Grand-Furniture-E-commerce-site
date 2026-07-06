@@ -43,6 +43,11 @@
                     <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-light">
                         <i class="ri-arrow-left-line me-1"></i> Back
                     </a>
+                    <a href="{{ route('orders.invoice', $order->id) }}"
+                       target="_blank"
+                       class="btn btn-sm btn-warning">
+                        <i class="ri-download-line me-1"></i> Download Invoice
+                    </a>
                 </div>
             </div>
         </div>

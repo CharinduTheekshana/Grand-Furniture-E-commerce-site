@@ -82,8 +82,6 @@
     <div class="col-xl-12">
         <div class="card">
             <div class="product-review-rating-wrapper" style="display:flex;align-items:center;gap:32px;padding:24px;">
-
-                {{-- Big avg score --}}
                 <div class="product-rating-box" style="min-width:160px;text-align:center;border-right:1px solid var(--border-color,#e9e9e9);padding-right:32px;">
                     <div style="font-size:56px;font-weight:700;line-height:1;color:var(--color-heading);">
                         {{ number_format($avgRating, 1) }}
@@ -95,23 +93,18 @@
                     </div>
                     <span style="font-size:13px;color:var(--color-body);">({{ $totalReviews }} Reviews)</span>
                 </div>
-
-                {{-- Progress bars --}}
                 <div style="flex:1;">
                     @foreach($breakdown as $star => $data)
                     <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
                         <span style="min-width:12px;font-size:14px;font-weight:600;">{{ $star }}</span>
                         <div class="progress" style="flex:1;height:10px;border-radius:6px;">
-                            <div class="progress-bar bg-{{ $data['color'] }}"
-                                 role="progressbar"
-                                 style="width:{{ $data['percent'] }}%"></div>
+                            <div class="progress-bar bg-{{ $data['color'] }}" role="progressbar" style="width:{{ $data['percent'] }}%"></div>
                         </div>
                         <span style="min-width:36px;font-size:13px;color:var(--color-body);">{{ $data['percent'] }}%</span>
                         <span style="min-width:30px;font-size:13px;color:var(--color-body);">{{ $data['count'] }}</span>
                     </div>
                     @endforeach
                 </div>
-
             </div>
         </div>
     </div>
@@ -185,13 +178,32 @@
                                     <small class="text-muted">{{ $review->created_at->format('h:i A') }}</small>
                                 </td>
                                 <td>
-                                    <form action="{{ url('/admin-panel/reviews/' . $review->id) }}"
-                                          method="POST" onsubmit="return confirm('Delete this review?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn-icon btn-danger-light" title="Delete">
-                                            <i class="ri-delete-bin-line"></i>
+                                    <div class="d-flex gap-2">
+                                        <button type="button"
+                                                class="btn-icon btn-success-light view-review-btn"
+                                                title="View"
+                                                data-product="{{ $review->product->name ?? '—' }}"
+                                                data-reviewer="{{ $review->user->name ?? $review->nickname ?? '—' }}"
+                                                data-email="{{ $review->user->email ?? '' }}"
+                                                data-summary="{{ $review->summary ?? '' }}"
+                                                data-review="{{ $review->review ?? '' }}"
+                                                data-quality="{{ $review->quality }}"
+                                                data-price="{{ $review->price }}"
+                                                data-value="{{ $review->value }}"
+                                                data-avg="{{ $avgStar }}"
+                                                data-date="{{ $review->created_at->format('d M Y, h:i A') }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#reviewModal">
+                                            <i class="ri-eye-line"></i>
                                         </button>
-                                    </form>
+                                        <form action="{{ url('/admin-panel/reviews/' . $review->id) }}"
+                                              method="POST" onsubmit="return confirm('Delete this review?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn-icon btn-danger-light" title="Delete">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -213,6 +225,68 @@
     </div>
 </div>
 
+{{-- Review Modal --}}
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ri-star-line me-2"></i> Review Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted fs-12">Product</label>
+                        <p class="fw-medium mb-0" id="r-product"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted fs-12">Date</label>
+                        <p class="fw-medium mb-0" id="r-date"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted fs-12">Reviewer</label>
+                        <p class="fw-medium mb-0" id="r-reviewer"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted fs-12">Email</label>
+                        <p class="fw-medium mb-0" id="r-email"></p>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted fs-12">Overall Rating</label>
+                        <div id="r-stars" style="color:#f59e0b;font-size:20px;"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted fs-12">Quality</label>
+                        <div id="r-quality" style="color:#f59e0b;"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted fs-12">Price</label>
+                        <div id="r-price" style="color:#f59e0b;"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted fs-12">Value</label>
+                        <div id="r-value" style="color:#f59e0b;"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted fs-12">Summary</label>
+                        <p class="fw-medium mb-0" id="r-summary"></p>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted fs-12">Full Review</label>
+                        <p id="r-review" style="white-space:pre-wrap;background:#f9f9f9;
+                           padding:12px;border-radius:6px;margin:0;"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -227,6 +301,29 @@ $(document).ready(function() {
             columnDefs: [{ orderable: false, targets: [4] }]
         });
     }
+});
+
+// Review modal
+document.querySelectorAll('.view-review-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        function stars(n) {
+            var s = '';
+            for (var i = 1; i <= 5; i++) {
+                s += '<i class="ri-star-' + (i <= n ? 'fill' : 'line') + '"></i>';
+            }
+            return s;
+        }
+        document.getElementById('r-product').textContent  = this.dataset.product;
+        document.getElementById('r-reviewer').textContent = this.dataset.reviewer;
+        document.getElementById('r-email').textContent    = this.dataset.email;
+        document.getElementById('r-summary').textContent  = this.dataset.summary;
+        document.getElementById('r-review').textContent   = this.dataset.review;
+        document.getElementById('r-date').textContent     = this.dataset.date;
+        document.getElementById('r-stars').innerHTML      = stars(parseInt(this.dataset.avg));
+        document.getElementById('r-quality').innerHTML    = stars(parseInt(this.dataset.quality));
+        document.getElementById('r-price').innerHTML      = stars(parseInt(this.dataset.price));
+        document.getElementById('r-value').innerHTML      = stars(parseInt(this.dataset.value));
+    });
 });
 </script>
 @endpush

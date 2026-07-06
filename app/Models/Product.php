@@ -23,6 +23,8 @@ class Product extends Model
         'category_id', 'name', 'slug', 'description',
         'price', 'sale_price', 'old_price', 'discount', 'image',
         'stock', 'is_featured', 'is_active', 'brand',
+        'offer_badge', 'offer_type',
+    'offer_start_date', 'offer_end_date', 'offer_status',
     ];
 
     protected $casts = [
@@ -31,6 +33,9 @@ class Product extends Model
         'price'       => 'decimal:2',
         'old_price'   => 'decimal:2',
         'sale_price'  => 'decimal:2',
+        'offer_start_date' => 'datetime',
+        'offer_end_date'   => 'datetime',
+        'offer_status'     => 'boolean',
     ];
 
     public function category()
@@ -83,4 +88,40 @@ class Product extends Model
 
         return asset('assets/images/product/1.jpg');
     }
+
+    public function colors()
+    {
+        return $this->belongsToMany(Color::class, 'product_color')
+                    ->withTimestamps();
+    }
+
+    // ── Helper: is offer currently active? (Offers)
+public function getIsOfferActiveAttribute(): bool
+{
+    if (!$this->offer_status) return false;
+    if (empty($this->offer_badge)) return false;
+
+    $now = now();
+
+    if ($this->offer_start_date && $now->lt($this->offer_start_date)) return false;
+    if ($this->offer_end_date   && $now->gt($this->offer_end_date))   return false;
+
+    return true;
+}
+// ── Helper: badge CSS color class ───────────────────
+public function getOfferBadgeClassAttribute(): string
+{
+    return match($this->offer_type) {
+        'flash_sale'    => 'offer-badge-flash',
+        'free_delivery' => 'offer-badge-free-delivery',
+        'bogo'          => 'offer-badge-bogo',
+        'clearance'     => 'offer-badge-clearance',
+        'flash'         => 'offer-badge-flash',
+        'percentage'    => 'offer-badge-percentage',
+        'fixed'         => 'offer-badge-fixed',
+        'weekend'       => 'offer-badge-weekend',
+        'mega'          => 'offer-badge-mega',
+        default         => 'offer-badge-default',
+    };
+}
 }

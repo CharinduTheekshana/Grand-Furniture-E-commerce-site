@@ -47,6 +47,13 @@
                     </a>
                 </li>
 
+                <li class="slide {{ request()->routeIs('admin.colors*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.colors.index') }}" class="sidebar-menu-item">
+                        <div class="side-menu-icon"><i class="ri-palette-line"></i></div>
+                        <span class="sidebar-menu-label">Colors</span>
+                    </a>
+                </li>
+
                 {{-- ══ ECOMMERCE ══════════════════════════════ --}}
                 <li class="sidebar-menu-category"><span class="category-name">Ecommerce</span></li>
 

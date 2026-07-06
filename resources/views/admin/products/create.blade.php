@@ -13,6 +13,7 @@
         <div class="col-xl-12">
             <div class="page-title-box d-flex-between flex-wrap gap-15 mb-20">
                 <h1 class="page-title fs-18 lh-1">Add Product</h1>
+                
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-example1 mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
@@ -172,7 +173,162 @@
                                 @error('stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
+                            {{-- Brand / Manufacturer --}}
+                            <div class="col-xl-12">
+                                <label class="form-label">Brand / Manufacturer</label>
+                                <input type="text" name="brand" class="form-control"
+                                    value="{{ old('brand') }}"
+                                    placeholder="e.g. IKEA, Damro, Arpico">
+                            </div>
+
                         </div>
+                    </div>
+                </div>
+
+                {{-- ── Offer & Deal Section ─────────────────── --}}
+                <div class="card mb-20">
+                    <div class="card-header justify-between">
+                        <h4><i class="ri-price-tag-3-line me-1"></i> Offer & Deal</h4>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" name="offer_status"
+                                id="offer-status-toggle" value="1" role="switch"
+                                onchange="toggleOfferSection(this.checked)"
+                                {{ old('offer_status', $product->offer_status ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-medium" for="offer-status-toggle">
+                                Enable Offer
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body pt-15" id="offer-section">
+                        <div class="row g-3">
+
+                            {{-- Offer Badge Text --}}
+                            <div class="col-xl-6">
+                                <label class="form-label">Offer Badge Text</label>
+                                <input type="text" name="offer_badge" class="form-control"
+                                    value="{{ old('offer_badge', $product->offer_badge ?? '') }}"
+                                    placeholder="e.g. Flash Sale" list="badge-suggestions">
+                                <datalist id="badge-suggestions">
+                                    <option value="Up to 30% OFF">
+                                    <option value="Flash Sale">
+                                    <option value="Weekend Deal">
+                                    <option value="Buy 1 Get 1">
+                                    <option value="Free Delivery">
+                                    <option value="Clearance Sale">
+                                    <option value="Limited Offer">
+                                    <option value="Mega Deal">
+                                </datalist>
+                                <small class="text-muted">Text shown on product badge</small>
+                            </div>
+
+                            {{-- Offer Type --}}
+                            <div class="col-xl-6">
+                                <label class="form-label">Offer Type</label>
+                                <select name="offer_type" class="form-select">
+                                    <option value="">— Select Type —</option>
+                                    @php
+                                        $offerTypes = [
+                                            'percentage'    => 'Percentage Discount',
+                                            'fixed'         => 'Fixed Discount',
+                                            'free_delivery' => 'Free Delivery',
+                                            'bogo'          => 'Buy 1 Get 1',
+                                            'clearance'     => 'Clearance Sale',
+                                            'flash_sale'    => 'Flash Sale',
+                                            'weekend'       => 'Weekend Deal',
+                                            'mega'          => 'Mega Deal',
+                                            'custom'        => 'Custom',
+                                        ];
+                                    @endphp
+                                    @foreach($offerTypes as $val => $label)
+                                    <option value="{{ $val }}"
+                                        {{ old('offer_type', $product->offer_type ?? '') === $val ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Start Date --}}
+                            <div class="col-xl-6">
+                                <label class="form-label">Offer Start Date</label>
+                                <input type="datetime-local" name="offer_start_date" class="form-control"
+                                    value="{{ old('offer_start_date', isset($product->offer_start_date) ? $product->offer_start_date?->format('Y-m-d\TH:i') : '') }}">
+                                <small class="text-muted">Leave blank = starts immediately</small>
+                            </div>
+
+                            {{-- End Date --}}
+                            <div class="col-xl-6">
+                                <label class="form-label">Offer End Date</label>
+                                <input type="datetime-local" name="offer_end_date" class="form-control"
+                                    value="{{ old('offer_end_date', isset($product->offer_end_date) ? $product->offer_end_date?->format('Y-m-d\TH:i') : '') }}">
+                                <small class="text-muted">Leave blank = no expiry</small>
+                            </div>
+
+                            {{-- Preview --}}
+                            <div class="col-xl-12">
+                                <label class="form-label">Badge Preview</label>
+                                <div id="badge-preview-area">
+                                    <span id="badge-preview"
+                                        style="display:inline-block;padding:4px 12px;border-radius:20px;
+                                                font-size:11px;font-weight:700;color:#fff;
+                                                background:#2c3e50;letter-spacing:0.4px;">
+                                        {{ old('offer_badge', $product->offer_badge ?? 'Preview') }}
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Colors Card with Toggle --}}
+                <div class="card mb-20">
+                    <div class="card-header justify-between">
+                        <h4>Product Colors</h4>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox"
+                                id="enable-colors-toggle" role="switch"
+                                onchange="toggleColorsSection(this.checked)">
+                            <label class="form-check-label fw-medium" for="enable-colors-toggle">
+                                Enable Colors
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body pt-15" id="colors-section" style="display:none;">
+                        @if(isset($allColors) && $allColors->isNotEmpty())
+                            <p class="text-muted fs-13 mb-15">
+                                Select colors available for this product:
+                            </p>
+                            <div class="d-flex flex-wrap gap-10">
+                                @foreach($allColors as $color)
+                                <div class="form-check" style="min-width:120px;">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="color_ids[]"
+                                        value="{{ $color->id }}"
+                                        id="color-{{ $color->id }}">
+                                    <label class="form-check-label d-flex align-items-center gap-8"
+                                        for="color-{{ $color->id }}"
+                                        style="cursor:pointer;">
+                                        @if($color->color_code)
+                                        <span style="display:inline-block;width:16px;height:16px;
+                                                    border-radius:50%;
+                                                    background:{{ $color->color_code }};
+                                                    border:1px solid #ddd;
+                                                    flex-shrink:0;"></span>
+                                        @endif
+                                        {{ $color->name }}
+                                    </label>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted mb-0">
+                                No colors defined yet.
+                                <a href="{{ route('admin.colors.index') }}" target="_blank">
+                                    Add colors first <i class="ri-external-link-line"></i>
+                                </a>
+                            </p>
+                        @endif
                     </div>
                 </div>
 
@@ -225,3 +381,44 @@
     </form>
 
 @endsection
+
+@push('scripts')
+<script>
+function toggleColorsSection(show) {
+    var section = document.getElementById('colors-section');
+    section.style.display = show ? 'block' : 'none';
+    if (!show) {
+        document.querySelectorAll('input[name="color_ids[]"]')
+            .forEach(function(cb) { cb.checked = false; });
+    }
+}
+
+// Offer section toggle
+function toggleOfferSection(show) {
+    document.getElementById('offer-section').style.display = show ? 'block' : 'none';
+}
+
+// Badge preview
+var badgeColors = {
+    'flash_sale':    'linear-gradient(135deg,#e74c3c,#c0392b)',
+    'free_delivery': 'linear-gradient(135deg,#27ae60,#1e8449)',
+    'bogo':          'linear-gradient(135deg,#2980b9,#1a5276)',
+    'clearance':     'linear-gradient(135deg,#e67e22,#d35400)',
+    'weekend':       'linear-gradient(135deg,#8e44ad,#6c3483)',
+    'mega':          'linear-gradient(135deg,#922b21,#7b241c)',
+    'percentage':    'linear-gradient(135deg,#e74c3c,#c0392b)',
+    'fixed':         'linear-gradient(135deg,#16a085,#1abc9c)',
+    'default':       'linear-gradient(135deg,#2c3e50,#34495e)',
+};
+
+document.querySelector('input[name="offer_badge"]').addEventListener('input', function() {
+    document.getElementById('badge-preview').textContent = this.value || 'Preview';
+});
+
+document.querySelector('select[name="offer_type"]').addEventListener('change', function() {
+    var color = badgeColors[this.value] || badgeColors['default'];
+    document.getElementById('badge-preview').style.background = color;
+});
+
+</script>
+@endpush

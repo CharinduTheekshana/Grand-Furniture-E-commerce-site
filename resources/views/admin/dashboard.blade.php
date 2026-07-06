@@ -97,6 +97,23 @@
     </div>
 </div>
 
+
+<!-- {{-- ── Active Offers Widget ── --}}
+<div class="col-xxl-3 col-xl-3 col-lg-3 col-md-6">
+    <div class="card">
+        <div class="card-body mini-card-body d-flex align-center gap-16">
+            <div class="avatar avatar-xl bg-warning-transparent text-warning">
+                <i class="ri-price-tag-3-line fs-42"></i>
+            </div>
+            <div class="card-content">
+                <span class="d-block fs-16 mb-5">Active Offers</span>
+                <h2 class="mb-5">{{ $activeOffers ?? 0 }}</h2>
+                <span class="text-danger fs-12">{{ $expiredOffers ?? 0 }} expired</span>
+            </div>
+        </div>
+    </div>
+</div> -->
+
 {{-- ── Revenue Report + Sales by Locations + Trending Product ── --}}
 <div class="col-xxl-6 col-xl-12" style="display:flex;flex-direction:column;">
     <div class="card" style="flex:1;">

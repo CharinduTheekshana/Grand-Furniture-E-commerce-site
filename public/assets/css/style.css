@@ -987,6 +987,22 @@ h3.del-price {
 	visibility: visible;
 	z-index: 11;
 }
+.single-new-product .product-img {
+    position: relative;
+}
+
+.out-of-stock-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 999;
+    background: #e74c3c;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
 
 .dotted-style2 .owl-carousel .owl-controls .owl-nav div, .dotted-style3 .owl-carousel .owl-controls .owl-nav div {
 	background: rgba(0, 0, 0, 0.2) none repeat scroll 0 0;

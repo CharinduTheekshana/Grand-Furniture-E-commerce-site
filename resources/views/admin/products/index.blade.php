@@ -3,7 +3,6 @@
 
 @section('content')
 
-{{-- Page Title --}}
 <div class="row">
     <div class="col-xl-12">
         <div class="page-title-box d-flex-between flex-wrap gap-15">
@@ -11,7 +10,6 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb breadcrumb-example1 mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
-                    <li class="breadcrumb-item"><a href="#">Ecommerce</a></li>
                     <li class="breadcrumb-item active">Product List</li>
                 </ol>
             </nav>
@@ -19,7 +17,6 @@
     </div>
 </div>
 
-{{-- Stat Cards --}}
 <div class="row g-3 mt-1">
     <div class="col-xxl-3 col-xl-3 col-lg-3 col-md-6">
         <div class="card">
@@ -30,7 +27,6 @@
                 <div class="card-content">
                     <span class="d-block fs-16 mb-5">Total Products</span>
                     <h2 class="mb-5">{{ $totalProducts }}</h2>
-                    <span class="fs-12 text-muted">All products</span>
                 </div>
             </div>
         </div>
@@ -44,7 +40,6 @@
                 <div class="card-content">
                     <span class="d-block fs-16 mb-5">In Stock</span>
                     <h2 class="mb-5">{{ $inStock }}</h2>
-                    <span class="text-success fs-12">Available</span>
                 </div>
             </div>
         </div>
@@ -58,7 +53,6 @@
                 <div class="card-content">
                     <span class="d-block fs-16 mb-5">Total Sold</span>
                     <h2 class="mb-5">{{ $totalSold }}</h2>
-                    <span class="fs-12 text-muted">All time</span>
                 </div>
             </div>
         </div>
@@ -72,24 +66,20 @@
                 <div class="card-content">
                     <span class="d-block fs-16 mb-5">Out of Stock</span>
                     <h2 class="mb-5">{{ $outOfStock }}</h2>
-                    <span class="text-danger fs-12">Needs restock</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Products Table --}}
 <div class="row mt-20">
     <div class="col-xl-12">
         <div class="card">
             <div class="card-header justify-between">
-                <h4 class="d-flex-items gap-10">Product List</h4>
-                <div class="d-flex flex-wrap gap-15">
-                    <a class="btn btn-primary" href="{{ route('admin.products.create') }}">
-                        <i class="ri-add-line me-1"></i> Add Product
-                    </a>
-                </div>
+                <h4>Product List</h4>
+                <a class="btn btn-primary" href="{{ route('admin.products.create') }}">
+                    <i class="ri-add-line me-1"></i> Add Product
+                </a>
             </div>
             <div class="card-body pt-15">
                 <div class="table-responsive">
@@ -102,6 +92,8 @@
                                 <th>Price (LKR)</th>
                                 <th>Stock</th>
                                 <th>Status</th>
+                                <th>Colors</th>
+                                <th>Offer</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -112,15 +104,8 @@
                                 <td>
                                     <div class="d-flex align-items-center gap-10">
                                         @if($product->image)
-                                        <div class="avatar avatar-md radius-6">
-                                            <img src="{{ asset('storage/' . $product->image) }}"
-                                                 style="width:42px;height:42px;object-fit:cover;border-radius:6px;">
-                                        </div>
-                                        @else
-                                        <div class="avatar avatar-md bg-primary-transparent text-primary radius-6"
-                                             style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:6px;">
-                                            <i class="ri-image-line"></i>
-                                        </div>
+                                        <img src="{{ asset('storage/' . $product->image) }}"
+                                             style="width:42px;height:42px;object-fit:cover;border-radius:6px;">
                                         @endif
                                         <div>
                                             <h6 class="mb-0 fw-medium">{{ $product->name }}</h6>
@@ -133,19 +118,12 @@
                                         {{ $product->category->name ?? '—' }}
                                     </span>
                                 </td>
-                                <td>
-                                    <div>
-                                        {{ number_format($product->price, 2) }}
-                                        @if($product->old_price)
-                                        <br><small class="text-muted text-decoration-line-through">{{ number_format($product->old_price, 2) }}</small>
-                                        @endif
-                                    </div>
-                                </td>
+                                <td>{{ number_format($product->price, 2) }}</td>
                                 <td>
                                     @if($product->stock > 10)
                                         <span class="badge bg-success-transparent text-success">{{ $product->stock }}</span>
                                     @elseif($product->stock > 0)
-                                        <span class="badge bg-warning-transparent text-warning">{{ $product->stock }} (Low)</span>
+                                        <span class="badge bg-warning-transparent text-warning">{{ $product->stock }}</span>
                                     @else
                                         <span class="badge bg-danger-transparent text-danger">Out of Stock</span>
                                     @endif
@@ -156,8 +134,39 @@
                                     @else
                                         <span class="badge bg-secondary-transparent text-secondary">Inactive</span>
                                     @endif
-                                    @if($product->is_featured)
-                                        <span class="badge bg-warning-transparent text-warning ms-1">Featured</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-4 flex-wrap">
+                                        @foreach($product->colors as $clr)
+                                        <span title="{{ $clr->name }}"
+                                              data-bs-toggle="tooltip"
+                                              style="display:inline-block;width:20px;height:20px;
+                                                     border-radius:50%;
+                                                     background:{{ $clr->color_code ?? '#ccc' }};
+                                                     border:1px solid #ddd;">
+                                        </span>
+                                        @endforeach
+                                        @if($product->colors->isEmpty())
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    @if($product->offer_badge && $product->offer_status)
+                                        <span style="display:inline-block;background:#f0f0f0;
+                                                     border-radius:4px;padding:3px 8px;font-size:11px;
+                                                     font-weight:600;max-width:110px;overflow:hidden;
+                                                     text-overflow:ellipsis;white-space:nowrap;"
+                                              title="{{ $product->offer_badge }}">
+                                            {{ Str::limit($product->offer_badge, 14) }}
+                                        </span>
+                                        @if($product->is_offer_active)
+                                            <br><small style="color:#16a34a;font-size:10px;">● Active</small>
+                                        @else
+                                            <br><small style="color:#dc2626;font-size:10px;">● Expired</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">—</span>
                                     @endif
                                 </td>
                                 <td>
@@ -171,9 +180,10 @@
                                             <i class="ri-edit-line"></i>
                                         </a>
                                         <form action="{{ route('admin.products.destroy', $product) }}"
-                                              method="POST" onsubmit="return confirm('Delete \'{{ addslashes($product->name) }}\'?')">
+                                              method="POST"
+                                              onsubmit="return confirm('Delete this product?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn-icon btn-danger-light" title="Delete">
+                                            <button type="submit" class="btn-icon btn-danger-light">
                                                 <i class="ri-delete-bin-line"></i>
                                             </button>
                                         </form>
@@ -182,10 +192,9 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="ri-box-3-line fs-32 d-block mb-10"></i>
+                                <td colspan="8" class="text-center py-5 text-muted">
                                     No products found.
-                                    <a href="{{ route('admin.products.create') }}">Add your first product</a>
+                                    <a href="{{ route('admin.products.create') }}">Add first product</a>
                                 </td>
                             </tr>
                             @endforelse
@@ -208,10 +217,12 @@ $(document).ready(function() {
         $('#dataTableDefault').DataTable({
             pageLength: 15,
             order: [[0, 'desc']],
-            columnDefs: [{ orderable: false, targets: [6] }]
+            columnDefs: [{ orderable: false, targets: [6, 7] }]
         });
     }
-    $('[title]').tooltip();
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+        new bootstrap.Tooltip(el);
+    });
 });
 </script>
 @endpush

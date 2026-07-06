@@ -84,15 +84,84 @@
                                         <h4>LKR {{ number_format($product->price,2) }}</h4>
                                     @endif
                                 </div>
+
+                                {{-- Offer Badge --}}
+                                @if($product->is_offer_active && $product->stock > 0)
+                                <div style="margin-bottom:10px;">
+                                    <span class="product-offer-badge-detail {{ $product->offer_badge_class }}">
+                                        {{ $product->offer_badge }}
+                                    </span>
+                                    @if($product->offer_type === 'flash_sale' && $product->offer_end_date)
+                                    <div class="product-offer-countdown-detail">
+                                        ⏱ Offer Ends In:
+                                        <span class="countdown-timer" data-end="{{ $product->offer_end_date->toIso8601String() }}">
+                                            --:--:--:--
+                                        </span>
+                                    </div>
+                                    @endif
+                                </div>
+                                @endif
+
+                                {{-- Color Selection --}}
+                                @if($product->colors->count() > 0)
+                                <div class="product-color-select" style="margin-bottom:15px;">
+                                    <p style="margin-bottom:8px;font-weight:600;">
+                                        Color:
+                                        <span id="selected-color-name" style="color:#f60;font-weight:400;">
+                                            — Select a color —
+                                        </span>
+                                    </p>
+                                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+                                        @foreach($product->colors as $color)
+                                        <div class="color-swatch"
+                                            data-color-name="{{ $color->name }}"
+                                            data-color-code="{{ $color->color_code ?? '' }}"
+                                            onclick="selectColor(this)"
+                                            title="{{ $color->name }}"
+                                            style="width:32px;height:32px;border-radius:50%;
+                                                    background:{{ $color->color_code ?? '#ccc' }};
+                                                    cursor:pointer;
+                                                    border:3px solid transparent;
+                                                    transition:all 0.2s;
+                                                    box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    <!-- <input type="hidden" id="selected-color-input" value="">
+                                    <input type="hidden" id="selected-color-input" value="">
+                                    <button type="button" onclick="resetColorOverlay()"
+                                            style="margin-top:6px;font-size:12px;
+                                                background:none;border:1px solid #ccc;
+                                                padding:3px 10px;border-radius:4px;cursor:pointer;"
+                                            id="reset-color-btn">
+                                        ✕ Reset
+                                    </button> -->
+                                </div>
+                                @endif
+
+                                @if($product->stock > 0)
                                 <div class="quick-add-to-cart">
                                     <div class="numbers-row">
                                         <label for="qty">Qty:</label>
                                         <input type="number" id="qty" value="1" min="1" max="{{ $product->stock }}">
                                     </div>
-                                    <button class="single_add_to_cart_button hyper-page add-to-cart" data-id="{{ $product->id }}" type="button">
+                                    <button class="single_add_to_cart_button hyper-page add-to-cart"
+                                            data-id="{{ $product->id }}" type="button">
                                         <span class="lnr lnr-cart"></span> Add to cart
                                     </button>
                                 </div>
+                                @else
+                                <div class="quick-add-to-cart">
+                                    <span style="display:inline-block;background:#e74c3c;color:#fff;
+                                                padding:10px 24px;border-radius:4px;font-size:14px;
+                                                font-weight:600;letter-spacing:0.5px;">
+                                        <i class="fa fa-times-circle me-1"></i> Out of Stock
+                                    </span>
+                                    <p style="margin-top:8px;font-size:13px;color:#999;">
+                                        This product is currently unavailable.
+                                    </p>
+                                </div>
+                                @endif
                                 <div class="action-heiper">
                                     @auth
                                     <a href="{{ route('checkout.index') }}"><span class="lnr lnr-sync"></span></a>
@@ -102,6 +171,59 @@
                                     <a href="#" class="wishlist-btn" data-id="{{ $product->id }}"><span class="lnr lnr-heart"></span></a>
                                 </div>
                                 <p>{{ $product->description }}</p>
+
+                                {{-- Brand / Manufacturer --}}
+                                @if($product->brand)
+                                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;">
+                                    <span style="font-size:13px;color:#999;">Brand / Manufacturer:</span>
+                                    <strong style="font-size:13px;color:#333;margin-left:6px;">{{ $product->brand }}</strong>
+                                </div>
+                                @endif
+
+                                {{-- Category --}}
+                                @if($product->category)
+                                <div style="margin-top:6px;">
+                                    <span style="font-size:13px;color:#999;">Category:</span>
+                                    <a href="{{ route('shop', ['category' => $product->category->slug]) }}"
+                                       style="font-size:13px;color:#c8a96e;margin-left:6px;">
+                                        {{ $product->category->name }}
+                                    </a>
+                                </div>
+                                @endif
+
+                                {{-- Social Share --}}
+                                <div style="margin-top:16px;padding-top:14px;border-top:1px solid #f0f0f0;">
+                                    <span style="font-size:13px;color:#999;font-weight:600;margin-right:10px;">Share:</span>
+                                    @php $shareUrl = urlencode(request()->url()); $shareTitle = urlencode($product->name); @endphp
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}"
+                                       target="_blank" rel="noopener"
+                                       style="display:inline-flex;align-items:center;justify-content:center;
+                                              width:32px;height:32px;border-radius:50%;background:#1877f2;
+                                              color:#fff;font-size:14px;margin-right:6px;text-decoration:none;">
+                                        <i class="fa fa-facebook"></i>
+                                    </a>
+                                    <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareTitle }}"
+                                       target="_blank" rel="noopener"
+                                       style="display:inline-flex;align-items:center;justify-content:center;
+                                              width:32px;height:32px;border-radius:50%;background:#1da1f2;
+                                              color:#fff;font-size:14px;margin-right:6px;text-decoration:none;">
+                                        <i class="fa fa-twitter"></i>
+                                    </a>
+                                    <a href="https://wa.me/?text={{ $shareTitle }}%20{{ $shareUrl }}"
+                                       target="_blank" rel="noopener"
+                                       style="display:inline-flex;align-items:center;justify-content:center;
+                                              width:32px;height:32px;border-radius:50%;background:#25d366;
+                                              color:#fff;font-size:14px;margin-right:6px;text-decoration:none;">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </a>
+                                    <button onclick="navigator.clipboard.writeText(window.location.href).then(()=>showToast('Link copied!','success'))"
+                                            style="display:inline-flex;align-items:center;justify-content:center;
+                                                   width:32px;height:32px;border-radius:50%;background:#666;
+                                                   color:#fff;font-size:14px;border:none;cursor:pointer;">
+                                        <i class="fa fa-link"></i>
+                                    </button>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -113,8 +235,9 @@
                         <div class="col-lg-12">
                             <div class="product-info-tab">
                                 <ul class="nav product-info-tab-menu" role="tablist">
-                                    <li><a class="active" href="#details" data-bs-toggle="tab">details</a></li>
-                                    <li><a href="#reviews" id="reviews-tab" data-bs-toggle="tab">reviews {{ $reviews->count() }}</a></li>
+                                    <li><a class="active" href="#details" data-bs-toggle="tab">Details</a></li>
+                                    <li><a href="#specifications" data-bs-toggle="tab">Specifications</a></li>
+                                    <li><a href="#reviews" id="reviews-tab" data-bs-toggle="tab">Reviews ({{ $reviews->count() }})</a></li>
                                 </ul>
                                 <div class="tab-content">
                                     <div class="tab-pane show active" id="details">
@@ -128,6 +251,56 @@
                                             </ul>
                                         </div>
                                     </div>
+                                    <div class="tab-pane" id="specifications">
+                                        <div class="product-info-tab-content">
+                                            <table style="width:100%;border-collapse:collapse;">
+                                                <tbody>
+                                                    <tr style="border-bottom:1px solid #f0f0f0;">
+                                                        <td style="padding:10px 16px;font-weight:600;width:35%;background:#fafafa;color:#666;font-size:13px;">SKU</td>
+                                                        <td style="padding:10px 16px;font-size:13px;">{{ strtoupper(substr(str_replace('-','',$product->slug),0,8)) }}</td>
+                                                    </tr>
+                                                    @if($product->brand)
+                                                    <tr style="border-bottom:1px solid #f0f0f0;">
+                                                        <td style="padding:10px 16px;font-weight:600;background:#fafafa;color:#666;font-size:13px;">Brand</td>
+                                                        <td style="padding:10px 16px;font-size:13px;">{{ $product->brand }}</td>
+                                                    </tr>
+                                                    @endif
+                                                    @if($product->category)
+                                                    <tr style="border-bottom:1px solid #f0f0f0;">
+                                                        <td style="padding:10px 16px;font-weight:600;background:#fafafa;color:#666;font-size:13px;">Category</td>
+                                                        <td style="padding:10px 16px;font-size:13px;">{{ $product->category->name }}</td>
+                                                    </tr>
+                                                    @endif
+                                                    @if($product->colors->count() > 0)
+                                                    <tr style="border-bottom:1px solid #f0f0f0;">
+                                                        <td style="padding:10px 16px;font-weight:600;background:#fafafa;color:#666;font-size:13px;">Available Colors</td>
+                                                        <td style="padding:10px 16px;font-size:13px;">
+                                                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                                                @foreach($product->colors as $c)
+                                                                <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;">
+                                                                    <span style="width:14px;height:14px;border-radius:50%;background:{{ $c->color_code ?? '#ccc' }};border:1px solid #ddd;display:inline-block;"></span>
+                                                                    {{ $c->name }}
+                                                                </span>
+                                                                @endforeach
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    @endif
+                                                    <tr style="border-bottom:1px solid #f0f0f0;">
+                                                        <td style="padding:10px 16px;font-weight:600;background:#fafafa;color:#666;font-size:13px;">Availability</td>
+                                                        <td style="padding:10px 16px;font-size:13px;">
+                                                            @if($product->stock > 0)
+                                                                <span style="color:#2ecc71;font-weight:600;">✓ In Stock ({{ $product->stock }} units)</span>
+                                                            @else
+                                                                <span style="color:#e74c3c;font-weight:600;">✗ Out of Stock</span>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
                                     <div class="tab-pane" id="reviews">
                                         @if(session('review_success'))
                                         <div class="alert alert-success mb-3">
@@ -373,6 +546,19 @@
     </div>
 </div>
 
+
+{{-- Recently Viewed Products --}}
+<div class="recently-viewed-section" style="padding:40px 0;background:#fafafa;">
+    <div class="container">
+        <div class="section-title text-center mb-30">
+            <h2 style="font-size:22px;">Recently Viewed</h2>
+        </div>
+        <div class="row" id="recently-viewed-list">
+            {{-- Populated by JS --}}
+        </div>
+    </div>
+</div>
+
 <div class="contact-area ptb-40">
     <div class="container">
         <div class="row">
@@ -418,6 +604,18 @@ $(document).on('click', '.star-rating-input i', function() {
         $(this).removeClass('fa-star fa-star-o').addClass(idx < val ? 'fa-star' : 'fa-star-o');
     });
 });
+
+// Color swatch selection
+function selectColor(el) {
+    document.querySelectorAll('.color-swatch').forEach(function(e) {
+        e.style.border = '3px solid transparent';
+        e.style.transform = 'scale(1)';
+    });
+    el.style.border = '3px solid #f60';
+    el.style.transform = 'scale(1.2)';
+    document.getElementById('selected-color-input').value = el.dataset.colorName;
+    document.getElementById('selected-color-name').textContent = el.dataset.colorName;
+}
 
 // Thumbnail click → swap main image + all product details
 $(document).on('click', '.sinple-tab-menu a', function() {
@@ -476,5 +674,48 @@ $(document).on('click', '.sinple-tab-menu a', function() {
     // Update product URL (sync button for auth users)
     $('a[href*="checkout"]').not('.checkout-guest-link').attr('href', productUrl);
 });
+
+// Recently Viewed — session storage
+(function() {
+    var key   = 'gf_recently_viewed';
+    var limit = 6;
+    var item  = {
+        id:    {{ $product->id }},
+        name:  @json(Str::limit($product->name, 25)),
+        price: 'LKR {{ number_format($product->price, 2) }}',
+        img:   @json($product->image_url),
+        url:   '{{ route("product.show", $product->slug) }}'
+    };
+
+    var viewed = JSON.parse(localStorage.getItem(key) || '[]');
+    viewed = viewed.filter(function(v) { return v.id !== item.id; });
+    viewed.unshift(item);
+    if (viewed.length > limit) viewed = viewed.slice(0, limit);
+    localStorage.setItem(key, JSON.stringify(viewed));
+
+    // Render recently viewed
+    var container = document.getElementById('recently-viewed-list');
+    if (!container) return;
+    var others = viewed.filter(function(v) { return v.id !== item.id; });
+    if (others.length === 0) {
+        container.closest('.recently-viewed-section').style.display = 'none';
+        return;
+    }
+    container.innerHTML = others.map(function(v) {
+        return '<div class="col-md-3 col-6 mb-3">' +
+            '<div class="single-new-product" style="border:1px solid #f0f0f0;border-radius:6px;overflow:hidden;">' +
+                '<div class="product-img">' +
+                    '<a href="' + v.url + '">' +
+                        '<img src="' + v.img + '" alt="' + v.name + '" style="width:100%;height:150px;object-fit:cover;">' +
+                    '</a>' +
+                '</div>' +
+                '<div class="product-content text-center" style="padding:10px;">' +
+                    '<a href="' + v.url + '"><h3 style="font-size:13px;">' + v.name + '</h3></a>' +
+                    '<h4 style="font-size:13px;color:#c8a96e;">' + v.price + '</h4>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+})();
 </script>
 @endpush

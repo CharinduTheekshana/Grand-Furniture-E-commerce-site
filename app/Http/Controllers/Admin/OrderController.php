@@ -42,6 +42,11 @@ class OrderController extends Controller
         $oldStatus = $order->status;
         $order->update(['status' => $request->status]);
 
+        // Fire realtime broadcast
+        try {
+            event(new \App\Events\OrderStatusUpdated($order));
+        } catch (\Exception $e) {}
+
         // Send status update email
         if ($oldStatus !== $request->status) {
             try {

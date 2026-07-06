@@ -1,10 +1,10 @@
 <div class="app-header-area">
     <header class="app-header" id="header">
         <div class="app-header-inner">
-
+            
             <div class="app-header-left">
                 <div class="app-header-element">
-                    <button class="app-header-hamburger" id="sidebar-toggle">
+                    <button class="app-header-hamburger" id="sidebarToggle">
                         <i class="ri-menu-line"></i>
                     </button>
                 </div>
@@ -13,10 +13,18 @@
                         <img src="{{ asset('assets/images/logo.png') }}" alt="Grand" style="height:30px;">
                     </a>
                 </div>
-                <div class="app-header-search d-none d-lg-block">
+                <div class="app-header-search d-none d-lg-block" style="position:relative;">
                     <div class="search-box">
                         <i class="ri-search-line search-icon"></i>
-                        <input type="search" class="form-control" placeholder="Search products, orders...">
+                        <input type="search" id="admin-global-search" class="form-control"
+                            placeholder="Search products, orders..."
+                            autocomplete="off">
+                    </div>
+                    <div id="admin-search-results"
+                        style="display:none;position:absolute;top:100%;left:0;right:0;
+                                background:#fff;border:1px solid #eee;border-radius:8px;
+                                box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:9999;
+                                max-height:400px;overflow-y:auto;margin-top:4px;">
                     </div>
                 </div>
             </div>

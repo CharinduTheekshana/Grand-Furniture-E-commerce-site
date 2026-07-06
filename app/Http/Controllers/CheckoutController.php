@@ -28,6 +28,19 @@ class CheckoutController extends Controller
         $subtotal = $cartItems->sum(fn($i) => ($i->product->sale_price ?? $i->product->price) * $i->quantity);
         $total    = $subtotal + $shipping;
 
+        // ── Apply coupon discount ────────────────────
+        $couponDiscount = 0;
+        $couponId       = session('coupon_id');
+        if ($couponId) {
+            $coupon = \App\Models\Coupon::find($couponId);
+            if ($coupon && $coupon->isValid()) {
+                $couponDiscount = $coupon->getDiscountAmount($subtotal);
+                $total          = max(0, $total - $couponDiscount);
+                $coupon->increment('used_count');
+                session()->forget(['coupon_code', 'coupon_id']);
+            }
+        }
+
         $order = Order::create([
             'user_id' => auth()->id(),
             'name'    => $request->first_name . ' ' . $request->last_name,
@@ -77,11 +90,17 @@ class CheckoutController extends Controller
     public function confirm(Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);
-        if ($order->status !== 'processing') {
-            return back()->with('error', 'Order cannot be confirmed at this stage.');
+        if (!in_array($order->status, ['delivered', 'processing', 'shipped'])) {
+            return back()->with('error', 'Order cannot be marked as received at this stage.');
         }
         $order->update(['status' => 'completed']);
+
+        // Fire realtime event
+        try {
+            event(new \App\Events\OrderStatusUpdated($order));
+        } catch (\Exception $e) {}
+
         return redirect()->route('orders.index')
-            ->with('success', 'Order #' . $order->id . ' confirmed as received!');
+            ->with('success', 'Order #' . $order->id . ' marked as received!');
     }
 }
