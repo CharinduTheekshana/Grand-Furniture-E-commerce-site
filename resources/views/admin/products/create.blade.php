@@ -133,6 +133,28 @@
                                class="form-control @error('image') is-invalid @enderror">
                         <small class="text-muted">JPG, PNG, WEBP — max 4MB</small>
                         @error('image') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                        <hr class="my-15">
+
+                        <label class="form-label">Gallery Images <span class="text-muted fs-12">(optional)</span></label>
+                        <div class="d-flex flex-wrap gap-10">
+                            <label for="gallery-upload-input"
+                                   style="width:72px;height:72px;border:1.5px dashed #c7cdd6;border-radius:6px;
+                                          display:flex;flex-direction:column;align-items:center;justify-content:center;
+                                          cursor:pointer;color:#8a93a3;transition:border-color .15s;flex-shrink:0;"
+                                   onmouseover="this.style.borderColor='#6366f1'"
+                                   onmouseout="this.style.borderColor='#c7cdd6'">
+                                <i class="ri-add-line fs-18"></i>
+                                <span style="font-size:10px;">Add</span>
+                            </label>
+                            <input id="gallery-upload-input" type="file" name="images[]" accept="image/*" multiple
+                                   class="d-none @error('images.*') is-invalid @enderror"
+                                   onchange="previewGalleryFiles(this)">
+                        </div>
+                        <div id="gallery-preview-row" class="d-flex flex-wrap gap-10 mt-10"></div>
+                        <small id="gallery-file-count" class="text-muted d-block mt-10"></small>
+                        <small class="text-muted d-block">Select multiple — JPG, PNG, WEBP, max 4MB each</small>
+                        @error('images.*') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </div>
                 </div>
 
@@ -384,6 +406,31 @@
 
 @push('scripts')
 <script>
+// Show live thumbnail previews for newly selected gallery files (not yet uploaded)
+function previewGalleryFiles(input) {
+    var row = document.getElementById('gallery-preview-row');
+    var countEl = document.getElementById('gallery-file-count');
+    row.innerHTML = '';
+
+    var files = Array.from(input.files || []);
+    if (!files.length) {
+        countEl.textContent = '';
+        return;
+    }
+    countEl.textContent = files.length + ' file(s) selected — will be added when you click Save Product';
+
+    files.forEach(function(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var div = document.createElement('div');
+            div.style.cssText = 'width:72px;height:72px;border-radius:6px;overflow:hidden;border:2px solid #6366f1;position:relative;flex-shrink:0;';
+            div.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+            row.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 function toggleColorsSection(show) {
     var section = document.getElementById('colors-section');
     section.style.display = show ? 'block' : 'none';

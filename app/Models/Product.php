@@ -95,6 +95,11 @@ class Product extends Model
                     ->withTimestamps();
     }
 
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
     // ── Helper: is offer currently active? (Offers)
 public function getIsOfferActiveAttribute(): bool
 {
@@ -107,6 +112,19 @@ public function getIsOfferActiveAttribute(): bool
     if ($this->offer_end_date   && $now->gt($this->offer_end_date))   return false;
 
     return true;
+}
+
+// ── Helper: Upcoming / Active / Expired / Off ───────
+public function getOfferStatusLabelAttribute(): string
+{
+    if (!$this->offer_status || empty($this->offer_badge)) return 'off';
+
+    $now = now();
+
+    if ($this->offer_start_date && $now->lt($this->offer_start_date)) return 'upcoming';
+    if ($this->offer_end_date   && $now->gt($this->offer_end_date))   return 'expired';
+
+    return 'active';
 }
 // ── Helper: badge CSS color class ───────────────────
 public function getOfferBadgeClassAttribute(): string

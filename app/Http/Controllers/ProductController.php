@@ -9,7 +9,7 @@ class ProductController extends Controller
 {
     public function show($slug)
     {
-        $product        =   Product::with(['colors'])
+        $product        =   Product::with(['colors', 'images'])
                                 ->where('slug', $slug)
                                 ->where('is_active', true)
                                 ->firstOrFail();
@@ -47,18 +47,22 @@ class ProductController extends Controller
             ];
         }
 
-            $thumbProducts = Product::where('is_active', true)
-                ->where('id', '!=', $product->id)
-                ->where('stock', '>', 0)
-                ->inRandomOrder()
-                ->take(4)
-                ->get()
-                ->each(function($p) {
-                    $p->avgRating = (int) round(
-                        Review::where('product_id', $p->id)
-                            ->avg(\DB::raw('(quality+price+value)/3')) ?? 3
-                    );
-                });
+            // Only fill the thumbnail row with other products when this product
+            // has no gallery images of its own — otherwise show only its own images.
+            $thumbProducts = $product->images->isNotEmpty()
+                ? collect()
+                : Product::where('is_active', true)
+                    ->where('id', '!=', $product->id)
+                    ->where('stock', '>', 0)
+                    ->inRandomOrder()
+                    ->take(4)
+                    ->get()
+                    ->each(function($p) {
+                        $p->avgRating = (int) round(
+                            Review::where('product_id', $p->id)
+                                ->avg(\DB::raw('(quality+price+value)/3')) ?? 3
+                        );
+                    });
 
         return view('pages.product-details', compact(
             'product', 'relatedProducts', 'reviews', 'avgRating', 'bsPairs', 'thumbProducts'

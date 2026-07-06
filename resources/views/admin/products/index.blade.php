@@ -160,8 +160,10 @@
                                               title="{{ $product->offer_badge }}">
                                             {{ Str::limit($product->offer_badge, 14) }}
                                         </span>
-                                        @if($product->is_offer_active)
+                                        @if($product->offer_status_label === 'active')
                                             <br><small style="color:#16a34a;font-size:10px;">● Active</small>
+                                        @elseif($product->offer_status_label === 'upcoming')
+                                            <br><small style="color:#d97706;font-size:10px;">● Upcoming</small>
                                         @else
                                             <br><small style="color:#dc2626;font-size:10px;">● Expired</small>
                                         @endif

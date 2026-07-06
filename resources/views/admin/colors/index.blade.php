@@ -93,7 +93,7 @@
     </div>
 
     <div class="col-xxl-4">
-        <div class="card">
+        <div class="card mb-20">
             <div class="card-header"><h4>Add New Color</h4></div>
             <div class="card-body pt-15">
                 @if($errors->any())
@@ -129,6 +129,26 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="ri-add-line me-1"></i> Add Color
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h4><i class="ri-stack-line me-1"></i> Bulk Add Colors</h4></div>
+            <div class="card-body pt-15">
+                <form action="{{ route('admin.colors.bulk') }}" method="POST">
+                    @csrf
+                    <div class="mb-15">
+                        <label class="form-label">One color per line</label>
+                        <textarea name="bulk_colors" rows="6" class="form-control"
+                                  placeholder="Black&#10;White, #ffffff&#10;Walnut Brown, #5c4033"></textarea>
+                        <small class="text-muted">
+                            Format: <code>Name</code> or <code>Name, #hexcode</code>. Existing names are skipped.
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="ri-add-line me-1"></i> Add All Colors
                     </button>
                 </form>
             </div>

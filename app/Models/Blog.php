@@ -32,9 +32,26 @@ class Blog extends Model
     // Image URL
     public function getImageUrlAttribute(): string
     {
-        if (!$this->image) return asset('assets/images/blog/1.jpg');
-        if (str_starts_with($this->image, 'http')) return $this->image;
-        if (str_starts_with($this->image, 'storage/')) return asset($this->image);
-        return asset('storage/' . $this->image);
+        if (!$this->image) {
+            return asset('assets/images/blog/1.jpg');
+        }
+
+        if (str_starts_with($this->image, 'http')) {
+            return $this->image;
+        }
+
+        $image = ltrim($this->image, '/');
+
+        // Storage disk (Filament-style uploads)
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($image)) {
+            return asset('storage/' . $image);
+        }
+
+        // Custom admin controller saves to public/uploads/blogs/
+        if (file_exists(public_path('uploads/blogs/' . basename($image)))) {
+            return asset('uploads/blogs/' . basename($image));
+        }
+
+        return asset('assets/images/blog/1.jpg');
     }
 }

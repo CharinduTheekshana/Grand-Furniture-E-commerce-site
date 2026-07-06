@@ -28,6 +28,43 @@ class ColorController extends Controller
 
         return back()->with('success', 'Color "' . $request->name . '" added!');
     }
+    public function storeBulk(Request $request)
+    {
+        $request->validate([
+            'bulk_colors' => 'required|string',
+        ]);
+
+        $lines   = preg_split('/\r\n|\r|\n/', $request->bulk_colors);
+        $added   = 0;
+        $skipped = 0;
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '') continue;
+
+            $parts     = array_map('trim', explode(',', $line));
+            $name      = $parts[0] ?? null;
+            $colorCode = $parts[1] ?? null;
+
+            if (!$name) continue;
+
+            if (Color::where('name', $name)->exists()) {
+                $skipped++;
+                continue;
+            }
+
+            Color::create([
+                'name'       => $name,
+                'color_code' => $colorCode ?: null,
+            ]);
+            $added++;
+        }
+
+        $message = "$added color(s) added.";
+        if ($skipped > 0) $message .= " $skipped skipped (already exist).";
+
+        return back()->with('success', $message);
+    }
 
     public function edit(Color $color)
     {

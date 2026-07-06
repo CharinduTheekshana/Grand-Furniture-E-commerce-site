@@ -97,6 +97,8 @@ Route::middleware(['auth'])
         Route::get('/products/{product}/edit',    [AdminProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{product}',         [AdminProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}',      [AdminProductController::class, 'destroy'])->name('products.destroy');
+        Route::delete('/products/images/{image}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');
+        Route::patch('/products/images/{image}/color', [AdminProductController::class, 'assignImageColor'])->name('products.images.color');
 
         // Blog
         Route::get('/blog',                       [AdminBlogController::class, 'index'])->name('blog.index');
@@ -137,6 +139,7 @@ Route::middleware(['auth'])
         // Colors
         Route::get('/colors',              [AdminColorController::class, 'index'])->name('colors.index');
         Route::post('/colors',             [AdminColorController::class, 'store'])->name('colors.store');
+        Route::post('/colors/bulk',       [AdminColorController::class, 'storeBulk'])->name('colors.bulk');
         Route::get('/colors/{color}/edit', [AdminColorController::class, 'edit'])->name('colors.edit');
         Route::put('/colors/{color}',      [AdminColorController::class, 'update'])->name('colors.update');
         Route::delete('/colors/{color}',   [AdminColorController::class, 'destroy'])->name('colors.destroy');

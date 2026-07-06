@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\Category;
 use App\Models\Color;
 use App\Events\ProductUpdated;
@@ -37,7 +38,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name'             => 'required|string|max:255',
-            'category_id'      => 'nullable|exists:categories,id',
+            'category_id'      => 'required|exists:categories,id',
             'description'      => 'nullable|string',
             'price'            => 'required|numeric|min:0',
             'old_price'        => 'nullable|numeric|min:0',
@@ -47,6 +48,8 @@ class ProductController extends Controller
             'is_featured'      => 'nullable|boolean',
             'is_active'        => 'nullable|boolean',
             'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'images'           => 'nullable|array',
+            'images.*'         => 'image|mimes:jpeg,png,jpg,webp|max:4096',
             'offer_badge'      => 'nullable|string|max:50',
             'offer_type'       => 'nullable|string|max:50',
             'offer_start_date' => 'nullable|date',
@@ -73,7 +76,13 @@ class ProductController extends Controller
         $validated['offer_end_date']   = $request->offer_end_date;
         $validated['offer_status']     = $request->has('offer_status') ? 1 : 0;
 
+        // images.* is not a product column — pull it out before create()
+        $galleryFiles = $request->file('images', []);
+        unset($validated['images']);
+
         $product = Product::create($validated);
+
+        $this->storeGalleryImages($product, $galleryFiles);
 
         if ($request->filled('color_ids')) {
             $product->colors()->sync($request->color_ids);
@@ -92,6 +101,7 @@ class ProductController extends Controller
         $categories       = Category::all();
         $allColors        = Color::orderBy('name')->get();
         $selectedColorIds = $product->colors->pluck('id')->toArray();
+        $product->load('images');
         return view('admin.products.edit', compact('product', 'categories', 'allColors', 'selectedColorIds'));
     }
 
@@ -99,7 +109,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name'             => 'required|string|max:255',
-            'category_id'      => 'nullable|exists:categories,id',
+            'category_id'      => 'required|exists:categories,id',
             'description'      => 'nullable|string',
             'price'            => 'required|numeric|min:0',
             'old_price'        => 'nullable|numeric|min:0',
@@ -109,6 +119,8 @@ class ProductController extends Controller
             'is_featured'      => 'nullable|boolean',
             'is_active'        => 'nullable|boolean',
             'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'images'           => 'nullable|array',
+            'images.*'         => 'image|mimes:jpeg,png,jpg,webp|max:4096',
             'offer_badge'      => 'nullable|string|max:50',
             'offer_type'       => 'nullable|string|max:50',
             'offer_start_date' => 'nullable|date',
@@ -137,7 +149,13 @@ class ProductController extends Controller
         $validated['offer_end_date']   = $request->offer_end_date;
         $validated['offer_status']     = $request->has('offer_status') ? 1 : 0;
 
+        $galleryFiles = $request->file('images', []);
+        unset($validated['images']);
+
         $product->update($validated);
+
+        // New gallery images are appended (existing ones are removed individually via destroyImage)
+        $this->storeGalleryImages($product, $galleryFiles);
 
         if ($request->filled('color_ids')) {
             $product->colors()->sync($request->color_ids);
@@ -156,12 +174,74 @@ class ProductController extends Controller
         if ($product->image && Storage::disk('public')->exists($product->image)) {
             Storage::disk('public')->delete($product->image);
         }
+
+        foreach ($product->images as $img) {
+            if (Storage::disk('public')->exists($img->image)) {
+                Storage::disk('public')->delete($img->image);
+            }
+        }
+
         $product->colors()->detach();
-        $product->delete();
+        $product->delete(); // product_images rows cascade-delete via FK
 
         event(new ProductUpdated(null, 'deleted'));
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product deleted successfully!');
+    }
+
+    /**
+     * Delete a single gallery image (admin "x" button on an existing thumbnail).
+     */
+    public function destroyImage(Request $request, ProductImage $image)
+    {
+        if (Storage::disk('public')->exists($image->image)) {
+            Storage::disk('public')->delete($image->image);
+        }
+        $image->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        return back()->with('success', 'Image removed.');
+    }
+
+    /**
+     * Assign (or clear) which color a gallery image represents.
+     */
+    public function assignImageColor(Request $request, ProductImage $image)
+    {
+        $request->validate([
+            'color_id' => 'nullable|exists:colors,id',
+        ]);
+
+        $image->update(['color_id' => $request->color_id ?: null]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Save an array of uploaded gallery files for a product.
+     */
+    private function storeGalleryImages(Product $product, array $files): void
+    {
+        if (empty($files)) return;
+
+        $nextOrder = (int) $product->images()->max('sort_order');
+
+        foreach ($files as $file) {
+            if (!$file || !$file->isValid()) continue;
+
+            $nextOrder++;
+            $filename = time() . '_' . $nextOrder . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('products', $file, $filename);
+
+            ProductImage::create([
+                'product_id' => $product->id,
+                'image'      => 'products/' . $filename,
+                'sort_order' => $nextOrder,
+            ]);
+        }
     }
 }

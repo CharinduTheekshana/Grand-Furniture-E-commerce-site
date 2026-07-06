@@ -1,5 +1,15 @@
 @extends('layouts.app')
 @section('title', $product->name . ' - Grand Furniture')
+
+@push('styles')
+<style>
+/* Guarantee only the active image-gallery pane is visible, even if the
+   theme's own tab script or CSS doesn't behave for some reason. */
+.tab-content > .tab-pane { display: none !important; }
+.tab-content > .tab-pane.active { display: block !important; }
+</style>
+@endpush
+
 @section('content')
 
 <div class="page-title-wrapper">
@@ -24,12 +34,24 @@
                         {{-- Image Gallery --}}
                         <div class="col-md-7">
                             <div class="tab-content">
+                                {{-- Cover photo — always the default view (matches what the
+                                     customer clicked on in listings/cards). It has no
+                                     corresponding thumbnail below when gallery photos exist,
+                                     so the thumbnail count matches the color count. --}}
                                 <div class="tab-pane show active" id="view1">
                                     <a class="image-link" href="{{ $product->image_url }}">
                                         <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
                                     </a>
                                 </div>
-                                
+
+                                @foreach($product->images as $gi => $img)
+                                <div class="tab-pane" id="gal{{ $gi+1 }}" data-color-id="{{ $img->color_id }}">
+                                    <a class="image-link" href="{{ $img->image_url }}">
+                                        <img src="{{ $img->image_url }}" alt="{{ $product->name }}">
+                                    </a>
+                                </div>
+                                @endforeach
+
                                 @foreach($thumbProducts as $ti => $tp)
                                 
                                 <div class="tab-pane" id="view{{ $ti+2 }}"
@@ -48,9 +70,18 @@
                                 @endforeach
                             </div>
                             <ul class="nav sinple-tab-menu" role="tablist">
+                                {{-- Thumbnail #1 is always the main/cover photo (the same
+                                     photo shown on listing cards) — matches what the customer
+                                     clicked to get here. Thumbnails after it are this
+                                     product's color/gallery photos. --}}
                                 <li><a class="active" href="#view1" data-bs-toggle="tab">
                                     <img src="{{ $product->image_url }}" alt="{{ $product->name }}" />
                                 </a></li>
+                                @foreach($product->images->take(4) as $gi => $img)
+                                <li><a href="#gal{{ $gi+1 }}" data-bs-toggle="tab" data-color-id="{{ $img->color_id }}">
+                                    <img src="{{ $img->image_url }}" alt="{{ $product->name }}" />
+                                </a></li>
+                                @endforeach
                                 @foreach($thumbProducts as $ti => $tp)
                                 <li><a href="#view{{ $ti+2 }}" data-bs-toggle="tab">
                                     <img src="{{ $tp->image_url }}" alt="{{ $tp->name }}" />
@@ -114,6 +145,7 @@
                                     <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
                                         @foreach($product->colors as $color)
                                         <div class="color-swatch"
+                                            data-color-id="{{ $color->id }}"
                                             data-color-name="{{ $color->name }}"
                                             data-color-code="{{ $color->color_code ?? '' }}"
                                             onclick="selectColor(this)"
@@ -127,15 +159,7 @@
                                         </div>
                                         @endforeach
                                     </div>
-                                    <!-- <input type="hidden" id="selected-color-input" value="">
                                     <input type="hidden" id="selected-color-input" value="">
-                                    <button type="button" onclick="resetColorOverlay()"
-                                            style="margin-top:6px;font-size:12px;
-                                                background:none;border:1px solid #ccc;
-                                                padding:3px 10px;border-radius:4px;cursor:pointer;"
-                                            id="reset-color-btn">
-                                        ✕ Reset
-                                    </button> -->
                                 </div>
                                 @endif
 
@@ -613,8 +637,26 @@ function selectColor(el) {
     });
     el.style.border = '3px solid #f60';
     el.style.transform = 'scale(1.2)';
-    document.getElementById('selected-color-input').value = el.dataset.colorName;
+
+    var colorId = el.dataset.colorId;
+    document.getElementById('selected-color-input').value = colorId;
     document.getElementById('selected-color-name').textContent = el.dataset.colorName;
+
+    if (!colorId) return;
+
+    // Find the gallery photo tied to this color — it may or may not have a
+    // visible thumbnail (the thumbnail strip is capped to a few photos),
+    // so switch the pane directly instead of relying on a thumbnail click.
+    var $pane = $('.tab-content .tab-pane[data-color-id="' + colorId + '"]');
+    if (!$pane.length) return;
+
+    $('.tab-content .tab-pane').removeClass('show active');
+    $pane.addClass('show active');
+
+    // Keep the thumbnail strip's highlighted state in sync, if that photo
+    // happens to also be one of the visible thumbnails.
+    $('.sinple-tab-menu a').removeClass('active');
+    $('.sinple-tab-menu a[data-color-id="' + colorId + '"]').addClass('active');
 }
 
 // Thumbnail click → swap main image + all product details
