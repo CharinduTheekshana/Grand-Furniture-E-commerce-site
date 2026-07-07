@@ -33,6 +33,24 @@
         .rt-toast.warning { background: #f39c12; }
         .rt-toast.error   { background: #e74c3c; }
 
+        /* The theme hides the entire sidebar header (logo + our close button)
+           below 575px — force it back so mobile users can see the logo and
+           actually close the sidebar. */
+        @media (max-width: 575px) {
+            .app-sidebar-header { display: flex !important; }
+        }
+
+        /* The theme's mobile header logo box is a tiny 35x35 square meant for
+           a square icon — our logo is a wide wordmark, so it was being
+           cropped. Give it room and keep it uncropped. */
+        .app-header-mobile-logo { width: auto !important; max-width: 130px; }
+        .app-header-mobile-logo img {
+            width: auto !important;
+            height: 30px !important;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
         @font-face {
             font-family: 'remixicon';
             src: url('https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.woff2') format('woff2');
@@ -49,6 +67,7 @@
     <div class="page">
         @include('components.admin-sidebar')
         @include('components.admin-header')
+        <div class="app-offcanvas-overlay"></div>
 
         <div class="app-content-area">
             <div class="app-content-wrap">
@@ -143,6 +162,7 @@
     <script src="{{ asset('assets/admin/js/vendor/height-equal.js') }}"></script>
     <script src="{{ asset('assets/admin/js/vendor/backtotop.js') }}"></script>
     <script src="{{ asset('assets/admin/js/plugins/apexcharts.min.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/plugins/smooth-scrollbar.js') }}"></script>
     <script src="{{ asset('assets/admin/js/main.js') }}"></script>
     <script src="{{ asset('assets/admin/js/vendor/sidebar.js') }}"></script>
     <script src="{{ asset('assets/admin/js/plugins/swiper.min.js') }}"></script>

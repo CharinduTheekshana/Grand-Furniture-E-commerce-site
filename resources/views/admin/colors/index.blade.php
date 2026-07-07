@@ -22,7 +22,8 @@
         <div class="card">
             <div class="card-header"><h4><i class="ri-palette-line me-1"></i> All Colors</h4></div>
             <div class="card-body p-0">
-                <table class="table mb-0">
+                <div class="table-responsive">
+                <table class="table text-nowrap mb-0">
                     <thead>
                         <tr>
                             <th>Preview</th>
@@ -88,12 +89,13 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-xxl-4">
-        <div class="card mb-20">
+        <div class="card">
             <div class="card-header"><h4>Add New Color</h4></div>
             <div class="card-body pt-15">
                 @if($errors->any())
@@ -133,7 +135,9 @@
                 </form>
             </div>
         </div>
+    </div>
 
+    <div class="col-xxl-4">
         <div class="card">
             <div class="card-header"><h4><i class="ri-stack-line me-1"></i> Bulk Add Colors</h4></div>
             <div class="card-body pt-15">

@@ -572,16 +572,16 @@
 
 
 {{-- Recently Viewed Products --}}
-<div class="recently-viewed-section" style="padding:40px 0;background:#fafafa;">
+<!-- <div class="recently-viewed-section" style="padding:50px 0;background:#fafafa;">
     <div class="container">
-        <div class="section-title text-center mb-30">
-            <h2 style="font-size:22px;">Recently Viewed</h2>
+        <div class="section-title text-center mb-40">
+            <h2 style="font-size:24px;font-weight:600;letter-spacing:0.5px;">Recently Viewed</h2>
         </div>
-        <div class="row" id="recently-viewed-list">
+        <div class="row g-4 justify-content-center" id="recently-viewed-list">
             {{-- Populated by JS --}}
         </div>
     </div>
-</div>
+</div> -->
 
 <div class="contact-area ptb-40">
     <div class="container">
@@ -750,20 +750,31 @@ $(document).on('click', '.sinple-tab-menu a', function(e) {
         return;
     }
     container.innerHTML = others.map(function(v) {
-        return '<div class="col-md-3 col-6 mb-3">' +
-            '<div class="single-new-product" style="border:1px solid #f0f0f0;border-radius:6px;overflow:hidden;">' +
-                '<div class="product-img">' +
-                    '<a href="' + v.url + '">' +
-                        '<img src="' + v.img + '" alt="' + v.name + '" style="width:100%;height:150px;object-fit:cover;">' +
-                    '</a>' +
+        return '<div class="col-lg-3 col-md-4 col-6">' +
+            '<a href="' + v.url + '" class="rv-card" style="display:block;background:#fff;' +
+                'border-radius:10px;overflow:hidden;text-decoration:none;' +
+                'box-shadow:0 2px 10px rgba(0,0,0,0.06);transition:transform .2s ease,box-shadow .2s ease;">' +
+                '<div style="aspect-ratio:1/1;background:#f7f5f2;display:flex;align-items:center;justify-content:center;padding:16px;">' +
+                    '<img src="' + v.img + '" alt="' + v.name + '" ' +
+                         'style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;">' +
                 '</div>' +
-                '<div class="product-content text-center" style="padding:10px;">' +
-                    '<a href="' + v.url + '"><h3 style="font-size:13px;">' + v.name + '</h3></a>' +
-                    '<h4 style="font-size:13px;color:#c8a96e;">' + v.price + '</h4>' +
+                '<div style="padding:14px 16px 18px;text-align:center;border-top:1px solid #f0eee9;">' +
+                    '<h3 style="font-size:14px;font-weight:500;color:#2b2b2b;margin:0 0 6px;' +
+                        'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + v.name + '</h3>' +
+                    '<span style="font-size:14px;font-weight:600;color:#c8a96e;">' + v.price + '</span>' +
                 '</div>' +
-            '</div>' +
+            '</a>' +
         '</div>';
     }).join('');
+
+    // Subtle hover lift (delegated so it applies to freshly injected cards)
+    $(document).off('mouseenter.rv mouseleave.rv', '.rv-card')
+        .on('mouseenter.rv', '.rv-card', function() {
+            $(this).css({ transform: 'translateY(-4px)', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' });
+        })
+        .on('mouseleave.rv', '.rv-card', function() {
+            $(this).css({ transform: 'translateY(0)', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' });
+        });
 })();
 </script>
 @endpush

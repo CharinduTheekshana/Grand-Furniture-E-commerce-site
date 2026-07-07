@@ -39,7 +39,7 @@ class CartController extends Controller
     public function update(Request $request, CartItem $item)
     {
         if ($item->user_id !== auth()->id()) abort(403);
-        $item->update(['quantity' => max(10, $request->quantity)]);
+        $item->update(['quantity' => max(1, $request->quantity)]);
         return redirect()->route('cart.index');
     }
 

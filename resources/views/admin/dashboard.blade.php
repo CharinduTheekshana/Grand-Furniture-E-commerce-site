@@ -3,9 +3,11 @@
 
 @push('styles')
 <style>
-.vendor-box-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.vendor-box-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .vendor-box { border: 1px solid var(--border-color, #e9e9e9); border-radius: 10px; padding: 16px; overflow: hidden; }
-.table td, .table th { white-space: normal !important; word-break: break-word; }
+.table:not(.text-nowrap) td, .table:not(.text-nowrap) th { white-space: normal !important; word-break: break-word; }
+.table-responsive { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+.table.text-nowrap td, .table.text-nowrap th { white-space: nowrap !important; }
 .transactions-list { list-style: none; padding: 0; margin: 0; }
 .trendingProduct { border-radius: 12px; overflow: hidden; }
 .card-slide-wrapper { position: relative; min-height: 200px; }

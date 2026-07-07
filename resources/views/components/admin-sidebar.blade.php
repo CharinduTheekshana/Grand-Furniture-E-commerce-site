@@ -8,6 +8,13 @@
         <a href="{{ route('admin.dashboard') }}" class="desktop-dark">
             <img src="{{ asset('assets/images/logo.png') }}" alt="Grand Furniture" style="height:38px;">
         </a>
+        <button type="button" class="sidebar-mobile-close d-lg-none"
+                onclick="document.querySelector('.app-sidebar').classList.remove('close_sidebar');
+                         document.querySelector('.app-offcanvas-overlay').classList.remove('overlay-open');"
+                style="position:absolute;top:12px;right:12px;background:none;border:none;
+                       font-size:22px;line-height:1;color:inherit;cursor:pointer;z-index:5;">
+            <i class="ri-close-line"></i>
+        </button>
     </div>
 
     <div class="app-sidebar-wrapper" id="sidebar-scroll">
