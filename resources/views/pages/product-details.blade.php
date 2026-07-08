@@ -44,6 +44,15 @@
                                     </a>
                                 </div>
 
+                                {{-- Dedicated pane for whichever color photo was last clicked —
+                                     works for this product's own colors AND for a "thumbnail
+                                     product"'s colors (see selectColor() / thumbnail click JS). --}}
+                                <div class="tab-pane" id="color-pane">
+                                    <a class="image-link" href="#" id="color-pane-link">
+                                        <img src="" alt="" id="color-pane-img">
+                                    </a>
+                                </div>
+
                                 @foreach($product->images as $gi => $img)
                                 <div class="tab-pane" id="gal{{ $gi+1 }}" data-color-id="{{ $img->color_id }}">
                                     <a class="image-link" href="{{ $img->image_url }}">
@@ -53,7 +62,17 @@
                                 @endforeach
 
                                 @foreach($thumbProducts as $ti => $tp)
-                                
+                                @php
+                                    $tpColors = $tp->colors->map(function($c) use ($tp) {
+                                        $img = $tp->images->firstWhere('color_id', $c->id);
+                                        return [
+                                            'id'    => $c->id,
+                                            'name'  => $c->name,
+                                            'code'  => $c->color_code,
+                                            'image' => $img ? $img->image_url : '',
+                                        ];
+                                    })->values();
+                                @endphp
                                 <div class="tab-pane" id="view{{ $ti+2 }}"
                                     data-id="{{ $tp->id }}"
                                     data-name="{{ $tp->name }}"
@@ -62,7 +81,8 @@
                                     data-rating="{{ $tp->avgRating }}"
                                     data-description="{{ $tp->description }}"
                                     data-stock="{{ $tp->stock }}"
-                                    data-url="{{ route('product.show', $tp->slug) }}">
+                                    data-url="{{ route('product.show', $tp->slug) }}"
+                                    data-colors='{{ $tpColors->toJson() }}'>
                                     <a class="image-link" href="{{ $tp->image_url }}">
                                         <img src="{{ $tp->image_url }}" alt="{{ $tp->name }}">
                                     </a>
@@ -134,20 +154,24 @@
                                 @endif
 
                                 {{-- Color Selection --}}
-                                @if($product->colors->count() > 0)
-                                <div class="product-color-select" style="margin-bottom:15px;">
+                                <div class="product-color-select" id="color-select-wrapper"
+                                     style="margin-bottom:15px; {{ $product->colors->count() ? '' : 'display:none;' }}">
                                     <p style="margin-bottom:8px;font-weight:600;">
                                         Color:
                                         <span id="selected-color-name" style="color:#f60;font-weight:400;">
                                             — Select a color —
                                         </span>
                                     </p>
-                                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+                                    <div id="color-swatch-row" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
                                         @foreach($product->colors as $color)
+                                        @php
+                                            $colorImg = $product->images->firstWhere('color_id', $color->id);
+                                        @endphp
                                         <div class="color-swatch"
                                             data-color-id="{{ $color->id }}"
                                             data-color-name="{{ $color->name }}"
                                             data-color-code="{{ $color->color_code ?? '' }}"
+                                            data-image="{{ $colorImg ? $colorImg->image_url : '' }}"
                                             onclick="selectColor(this)"
                                             title="{{ $color->name }}"
                                             style="width:32px;height:32px;border-radius:50%;
@@ -161,7 +185,6 @@
                                     </div>
                                     <input type="hidden" id="selected-color-input" value="">
                                 </div>
-                                @endif
 
                                 @if($product->stock > 0)
                                 <div class="quick-add-to-cart">
@@ -572,7 +595,7 @@
 
 
 {{-- Recently Viewed Products --}}
-<!-- <div class="recently-viewed-section" style="padding:50px 0;background:#fafafa;">
+<div class="recently-viewed-section" style="padding:50px 0;background:#fafafa;">
     <div class="container">
         <div class="section-title text-center mb-40">
             <h2 style="font-size:24px;font-weight:600;letter-spacing:0.5px;">Recently Viewed</h2>
@@ -581,7 +604,7 @@
             {{-- Populated by JS --}}
         </div>
     </div>
-</div> -->
+</div>
 
 <div class="contact-area ptb-40">
     <div class="container">
@@ -594,8 +617,24 @@
 
 @endsection
 
+@php
+    $originalColorsData = $product->colors->map(function($c) use ($product) {
+        $img = $product->images->firstWhere('color_id', $c->id);
+        return [
+            'id'    => $c->id,
+            'name'  => $c->name,
+            'code'  => $c->color_code,
+            'image' => $img ? $img->image_url : '',
+        ];
+    })->values();
+@endphp
+
 @push('scripts')
 <script>
+// This product's own colors, kept around so they can be restored after
+// browsing a "thumbnail product"'s colors and clicking back to view1.
+window.originalProductColors = @json($originalColorsData);
+
 $(document).on('click', '.hyper-page.add-to-cart', function(e) {
     e.preventDefault();
     var productId = $(this).data('id');
@@ -639,7 +678,8 @@ function showGalleryPane(paneId) {
     $('.sinple-tab-menu a[href="#' + paneId + '"]').addClass('active');
 }
 
-// Color swatch selection
+// Color swatch selection — works for this product's own colors AND for
+// colors belonging to a "thumbnail product" (built dynamically, see below).
 function selectColor(el) {
     document.querySelectorAll('.color-swatch').forEach(function(e) {
         e.style.border = '3px solid transparent';
@@ -652,14 +692,47 @@ function selectColor(el) {
     document.getElementById('selected-color-input').value = colorId;
     document.getElementById('selected-color-name').textContent = el.dataset.colorName;
 
-    if (!colorId) return;
+    var imgUrl = el.dataset.image;
+    if (!imgUrl) return;
 
-    // Find the gallery photo tied to this color — it may or may not have a
-    // visible thumbnail (the thumbnail strip is capped to a few photos).
-    var pane = document.querySelector('.tab-content .tab-pane[data-color-id="' + colorId + '"]');
-    if (!pane) return;
+    document.getElementById('color-pane-img').src = imgUrl;
+    document.getElementById('color-pane-img').alt = el.dataset.colorName;
+    document.getElementById('color-pane-link').href = imgUrl;
+    showGalleryPane('color-pane');
+}
 
-    showGalleryPane(pane.id);
+// Rebuild the color-swatch row for a given set of {id,name,code,image} colors.
+// Used when switching to a "thumbnail product" so its own colors show up.
+function renderColorSwatches(colors) {
+    var $wrapper = $('#color-select-wrapper');
+    var $row     = $('#color-swatch-row');
+
+    if (!colors || !colors.length) {
+        $wrapper.hide();
+        return;
+    }
+
+    $row.empty();
+    colors.forEach(function(c) {
+        var $swatch = $('<div class="color-swatch"></div>')
+            .attr('data-color-id', c.id)
+            .attr('data-color-name', c.name)
+            .attr('data-color-code', c.code || '')
+            .attr('data-image', c.image || '')
+            .attr('title', c.name)
+            .attr('onclick', 'selectColor(this)')
+            .css({
+                width: '32px', height: '32px', borderRadius: '50%',
+                background: c.code || '#ccc', cursor: 'pointer',
+                border: '3px solid transparent', transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            });
+        $row.append($swatch);
+    });
+
+    document.getElementById('selected-color-name').textContent = '— Select a color —';
+    document.getElementById('selected-color-input').value = '';
+    $wrapper.show();
 }
 
 // Thumbnail click → swap main image (+ product details, for "other product" thumbnails)
@@ -683,7 +756,11 @@ $(document).on('click', '.sinple-tab-menu a', function(e) {
     var productUrl  = $pane.data('url');
     var stock       = $pane.data('stock');
 
-    if (!name) return; // view1 (current product) — no change needed
+    if (!name) {
+        // view1 (this product's own cover) — restore this product's own colors
+        if (tabId === 'view1') renderColorSwatches(window.originalProductColors);
+        return;
+    }
 
     // Update name
     $('.sinple-c-title h3').text(name);
@@ -721,6 +798,10 @@ $(document).on('click', '.sinple-tab-menu a', function(e) {
 
     // Update product URL (sync button for auth users)
     $('a[href*="checkout"]').not('.checkout-guest-link').attr('href', productUrl);
+
+    // Show this "thumbnail product"'s own colors, if it has any
+    var colors = $pane.data('colors');
+    renderColorSwatches(colors);
 });
 
 // Recently Viewed — session storage

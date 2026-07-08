@@ -54,6 +54,7 @@ class ProductController extends Controller
                 : Product::where('is_active', true)
                     ->where('id', '!=', $product->id)
                     ->where('stock', '>', 0)
+                    ->with(['colors', 'images'])
                     ->inRandomOrder()
                     ->take(4)
                     ->get()
