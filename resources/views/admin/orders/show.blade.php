@@ -91,6 +91,14 @@
                                             <span class="fs-12 text-muted lh-1">
                                                 {{ $item->product->category->name ?? '' }}
                                             </span>
+                                            @if($item->color)
+                                            <div class="fs-12 fw-medium mt-2">
+                                                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+                                                            background:{{ $item->color->color_code ?? '#ccc' }};
+                                                            border:1px solid #ddd;vertical-align:middle;"></span>
+                                                Color: {{ $item->color->name }}
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>

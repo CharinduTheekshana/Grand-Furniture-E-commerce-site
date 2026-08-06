@@ -11,14 +11,14 @@ class CheckoutController extends Controller
 {
     public function index()
     {
-        $cartItems = CartItem::with('product')->where('user_id', auth()->id())->get();
+        $cartItems = CartItem::with(['product', 'color'])->where('user_id', auth()->id())->get();
         $total = $cartItems->sum(fn($i) => ($i->product->sale_price ?? $i->product->price) * $i->quantity);
         return view('pages.checkout', compact('cartItems', 'total'));
     }
 
     public function store(Request $request)
     {
-        $cartItems = CartItem::with('product')->where('user_id', auth()->id())->get();
+        $cartItems = CartItem::with(['product', 'color'])->where('user_id', auth()->id())->get();
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
@@ -55,6 +55,7 @@ class CheckoutController extends Controller
             OrderItem::create([
                 'order_id'   => $order->id,
                 'product_id' => $item->product_id,
+                'color_id'   => $item->color_id,
                 'quantity'   => $item->quantity,
                 'price'      => $item->product->sale_price ?? $item->product->price,
             ]);
@@ -83,7 +84,7 @@ class CheckoutController extends Controller
     public function show(Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);
-        $order->load('items.product');
+        $order->load('items.product', 'items.color');
         return view('pages.order-detail', compact('order'));
     }
 

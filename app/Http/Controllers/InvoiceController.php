@@ -14,7 +14,7 @@ class InvoiceController extends Controller
             abort(403);
         }
 
-        $order->load('items.product');
+        $order->load('items.product', 'items.color');
 
         // Use Dompdf if installed, otherwise return HTML
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {

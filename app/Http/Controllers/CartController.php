@@ -11,24 +11,41 @@ class CartController extends Controller
     public function index()
     {
         if (!auth()->check()) return redirect()->route('login');
-        $cartItems = CartItem::with('product')->where('user_id', auth()->id())->get();
+        $cartItems = CartItem::with(['product', 'color'])->where('user_id', auth()->id())->get();
         $total = $cartItems->sum(fn($item) => ($item->product->sale_price ?? $item->product->price) * $item->quantity);
         return view('pages.cart', compact('cartItems', 'total'));
     }
 
     public function add(Request $request, Product $product)
     {
+        $colorId = $request->color_id ?: null;
+
         if (!auth()->check()) {
             // Save intended action in session
-            session(['intended_action' => 'cart', 'intended_product' => $product->id, 'intended_qty' => $request->qty ?? 1]);
+            session([
+                'intended_action'  => 'cart',
+                'intended_product' => $product->id,
+                'intended_qty'     => $request->qty ?? 1,
+                'intended_color'   => $colorId,
+            ]);
             return response()->json(['redirect' => route('login')]);
         }
 
-        $cartItem = CartItem::where('user_id', auth()->id())->where('product_id', $product->id)->first();
+        // Same product but a different color is a separate cart line
+        $cartItem = CartItem::where('user_id', auth()->id())
+            ->where('product_id', $product->id)
+            ->where('color_id', $colorId)
+            ->first();
+
         if ($cartItem) {
             $cartItem->increment('quantity', $request->qty ?? 1);
         } else {
-            CartItem::create(['user_id' => auth()->id(), 'product_id' => $product->id, 'quantity' => $request->qty ?? 1]);
+            CartItem::create([
+                'user_id'    => auth()->id(),
+                'product_id' => $product->id,
+                'color_id'   => $colorId,
+                'quantity'   => $request->qty ?? 1,
+            ]);
         }
 
         $count = CartItem::where('user_id', auth()->id())->sum('quantity');

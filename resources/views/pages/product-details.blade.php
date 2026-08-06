@@ -639,13 +639,14 @@ $(document).on('click', '.hyper-page.add-to-cart', function(e) {
     e.preventDefault();
     var productId = $(this).data('id');
     var qty = parseInt($('#qty').val()) || 1;
+    var colorId = $('#selected-color-input').val() || '';
     @auth
-    $.post('/cart/add/' + productId, { qty: qty }, function(res) {
+    $.post('/cart/add/' + productId, { qty: qty, color_id: colorId }, function(res) {
         if (res.redirect) { window.location.href = res.redirect; }
         else { $('.cart-count').text(res.count); showToast('Added to cart!', 'success'); }
     });
     @else
-    saveIntendedAndLogin('cart', productId, qty);
+    saveIntendedAndLogin('cart', productId, qty, colorId);
     @endauth
 });
 $(document).on('mouseenter', '.star-rating-input i', function() {

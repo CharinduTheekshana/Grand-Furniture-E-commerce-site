@@ -81,8 +81,8 @@
             }
         });
 
-        function saveIntendedAndLogin(action, productId, qty) {
-            $.post('/save-intended', { action: action, product_id: productId, qty: qty || 1 },
+        function saveIntendedAndLogin(action, productId, qty, colorId) {
+            $.post('/save-intended', { action: action, product_id: productId, qty: qty || 1, color_id: colorId || '' },
                 function() { window.location.href = '{{ route("login") }}'; })
             .fail(function() { window.location.href = '{{ route("login") }}'; });
         }

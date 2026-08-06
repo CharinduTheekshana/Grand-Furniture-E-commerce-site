@@ -47,6 +47,15 @@
                                 </td>
                                 <td class="product-name">
                                     <a href="{{ route('product.show',$item->product->slug) }}">{{ $item->product->name }}</a>
+                                    @if($item->color)
+                                    <div style="font-size:12px;color:#666;margin-top:4px;">
+                                        Color:
+                                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+                                                    background:{{ $item->color->color_code ?? '#ccc' }};
+                                                    border:1px solid #ddd;vertical-align:middle;"></span>
+                                        {{ $item->color->name }}
+                                    </div>
+                                    @endif
                                 </td>
                                 <td class="product-price">
                                     <span class="amount">LKR {{ number_format($item->product->price,2) }}</span>

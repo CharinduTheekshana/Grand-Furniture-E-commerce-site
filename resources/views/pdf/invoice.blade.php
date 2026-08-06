@@ -139,6 +139,9 @@
                     @if($item->product)
                     <div class="product-sku">SKU: {{ strtoupper(substr(str_replace('-','',$item->product->slug ?? ''),0,8)) }}</div>
                     @endif
+                    @if($item->color)
+                    <div class="product-sku">Color: {{ $item->color->name }}</div>
+                    @endif
                 </td>
                 <td>LKR {{ number_format($item->price, 2) }}</td>
                 <td>{{ $item->quantity }}</td>

@@ -230,6 +230,9 @@
                                     <td class="product-name">
                                         {{ $item->product->name }}
                                         <strong class="product-quantity"> × {{ $item->quantity }}</strong>
+                                        @if($item->color)
+                                        <br><small class="text-muted">Color: {{ $item->color->name }}</small>
+                                        @endif
                                         <br><small class="text-muted">Unit: LKR {{ number_format($price, 2) }}</small>
                                     </td>
                                     <td class="product-total">

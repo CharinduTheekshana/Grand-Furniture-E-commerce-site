@@ -35,6 +35,7 @@ Route::post('/save-intended', function(\Illuminate\Http\Request $request) {
         'intended_action'  => $request->action,
         'intended_product' => $request->product_id,
         'intended_qty'     => $request->qty ?? 1,
+        'intended_color'   => $request->color_id ?: null,
     ]);
     return response()->json(['ok' => true]);
 })->name('save.intended');

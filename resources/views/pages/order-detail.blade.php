@@ -220,6 +220,9 @@
                                         <a href="{{ route('product.show', $item->product->slug) }}">
                                             {{ $item->product->name }}
                                         </a>
+                                        @if($item->color)
+                                        <br><small class="text-muted">Color: {{ $item->color->name }}</small>
+                                        @endif
                                         @else
                                         <span class="text-muted">Product unavailable</span>
                                         @endif

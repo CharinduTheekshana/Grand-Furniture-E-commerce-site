@@ -32,45 +32,53 @@ class AuthenticatedSessionController extends Controller
         $intendedAction  = session('intended_action');
         $intendedProduct = session('intended_product');
         $intendedQty     = session('intended_qty', 1);
+        $intendedColor   = session('intended_color');
 
         \Log::info('Intended:', [
             'action'  => $intendedAction,
             'product' => $intendedProduct,
             'qty'     => $intendedQty,
+            'color'   => $intendedColor,
         ]);
 
         // Checkout — add product to cart first if provided, then go to checkout
         if ($intendedAction === 'checkout') {
             if ($intendedProduct) {
                 $cartItem = CartItem::where('user_id', auth()->id())
-                    ->where('product_id', $intendedProduct)->first();
+                    ->where('product_id', $intendedProduct)
+                    ->where('color_id', $intendedColor)
+                    ->first();
                 if ($cartItem) {
                     $cartItem->increment('quantity', $intendedQty);
                 } else {
                     CartItem::create([
                         'user_id'    => auth()->id(),
                         'product_id' => $intendedProduct,
+                        'color_id'   => $intendedColor,
                         'quantity'   => $intendedQty,
                     ]);
                 }
             }
-            session()->forget(['intended_action', 'intended_product', 'intended_qty']);
+            session()->forget(['intended_action', 'intended_product', 'intended_qty', 'intended_color']);
             return redirect()->route('checkout.index');
         }
 
         // Cart / Wishlist — need product_id
         if ($intendedAction && $intendedProduct) {
-            session()->forget(['intended_action', 'intended_product', 'intended_qty']);
+            session()->forget(['intended_action', 'intended_product', 'intended_qty', 'intended_color']);
 
             if ($intendedAction === 'cart') {
                 $cartItem = CartItem::where('user_id', auth()->id())
-                    ->where('product_id', $intendedProduct)->first();
+                    ->where('product_id', $intendedProduct)
+                    ->where('color_id', $intendedColor)
+                    ->first();
                 if ($cartItem) {
                     $cartItem->increment('quantity', $intendedQty);
                 } else {
                     CartItem::create([
                         'user_id'    => auth()->id(),
                         'product_id' => $intendedProduct,
+                        'color_id'   => $intendedColor,
                         'quantity'   => $intendedQty,
                     ]);
                 }
